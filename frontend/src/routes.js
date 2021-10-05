@@ -6,10 +6,10 @@ import LogoOnlyLayout from './layouts/LogoOnlyLayout';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import DashboardApp from './pages/DashboardApp';
-import Products from './pages/Products';
-import Blog from './pages/Blog';
-import User from './pages/User';
 import NotFound from './pages/Page404';
+import Eventos from './pages/Eventos';
+import Salas from './pages/Salas';
+import Modulos from './pages/Modulos';
 
 // ----------------------------------------------------------------------
 
@@ -21,9 +21,9 @@ export default function Router() {
       children: [
         { element: <Navigate to="/dashboard/app" replace /> },
         { path: 'app', element: <DashboardApp /> },
-        { path: 'user', element: <User /> },
-        { path: 'products', element: <Products /> },
-        { path: 'blog', element: <Blog /> }
+        { path: 'evento', element: <Eventos /> },
+        { path: 'sala', element: <Salas /> },
+        { path: 'modulo', element: <Modulos /> },
       ]
     },
     {
