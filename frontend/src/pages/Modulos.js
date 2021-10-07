@@ -168,9 +168,9 @@ export default function Modulos() {
         <Grid container spacing={2}>
           {user === "ADMIN" && (
             <Grid item xs={12} style={{ marginBottom: 10 }}>
-              <Paper elevation={3}>
+              <Paper elevation={3} >
                 <Grid container spacing={2}>
-                  <Grid item xs={6} md={6}>
+                  <Grid item xs={6} md={6} style={{ marginBottom: 10 }}>
                     <label htmlFor="contained-button-file">
                       <Input accept="image/*" id="contained-button-file" multiple type="file" />
                       <Button variant="contained" component="span" fullWidth>
@@ -178,7 +178,7 @@ export default function Modulos() {
                       </Button>
                     </label>
                   </Grid>
-                  <Grid item xs={6} md={6}>
+                  <Grid item xs={6} md={6} style={{ marginBottom: 10 }}>
                     <Button variant="contained" color="inherit" fullWidth>
                       Descargar plantilla
                     </Button>
@@ -198,7 +198,7 @@ export default function Modulos() {
               <Paper elevation={3}>
                 <Grid container spacing={2}>
 
-                  <Grid item xs={5} md={5} style={{ marginLeft: 10 }}>
+                  <Grid item xs={5} md={5} style={{ marginLeft: 10, marginBottom: 10 }}>
                     <FormControl fullWidth>
                       <InputLabel id="selectFacultadesFiltro">Facultades</InputLabel>
                       <Select
@@ -217,7 +217,7 @@ export default function Modulos() {
                     </FormControl>
                   </Grid>
 
-                  <Grid item xs={5} md={5}>
+                  <Grid item xs={5} md={5} style={{ marginBottom: 10 }}>
                     <FormControl fullWidth>
                       <InputLabel id="selectCarrerasFiltro">Carreras</InputLabel>
                       <Select
