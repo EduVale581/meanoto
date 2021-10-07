@@ -165,8 +165,9 @@ export default function Modulos() {
 
         </Stack>
 
-        <Grid container spacing={2}>
-          {user === "ADMIN" && (
+
+        {user === "ADMIN" && (
+          <Grid container spacing={2} style={{ marginBottom: 10 }}>
             <Grid item xs={12} style={{ marginBottom: 10 }}>
               <Paper elevation={3} >
                 <Grid container spacing={2}>
@@ -191,9 +192,11 @@ export default function Modulos() {
 
               </Paper>
             </Grid>
-          )}
+          </Grid>
+        )}
 
-          {user === "ADMIN" && (
+        {user === "ADMIN" && (
+          <Grid container spacing={2} style={{ marginBottom: 10 }}>
             <Grid item xs={12}>
               <Paper elevation={3}>
                 <Grid container spacing={2}>
@@ -240,16 +243,17 @@ export default function Modulos() {
 
               </Paper>
             </Grid>
-          )}
+          </Grid>
+        )}
 
 
 
 
-
+        <Grid container spacing={2} xs={12}>
 
 
           {modulosMostrar.map((e, index) => {
-            return (<Grid item xs={3} key={index}>
+            return (<Grid item key={index} xs={6} md={4}>
               <CardModulos modulo={e} setModulos={setModulosArreglo} modulos={modulosArreglo} />
             </Grid>);
 
