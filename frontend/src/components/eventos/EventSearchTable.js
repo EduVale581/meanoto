@@ -12,7 +12,7 @@ import TableSortLabel from '@mui/material/TableSortLabel';
 import Paper from '@mui/material/Paper';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
-import ClassIcon from '@mui/icons-material/Class';
+import EventSeatIcon from '@mui/icons-material/EventSeat';
 import { visuallyHidden } from '@mui/utils';
 
 import SearchBar from './SearchBar';
@@ -249,7 +249,7 @@ export default function EnhancedTable() {
 
                         <Tooltip title="Reservar">
                           <IconButton>
-                            <ClassIcon/>
+                            <EventSeatIcon/>
                           </IconButton>
                         </Tooltip>
                       </TableCell>

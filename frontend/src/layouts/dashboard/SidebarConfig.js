@@ -1,17 +1,15 @@
-import { Icon } from '@iconify/react';
-import pieChart2Fill from '@iconify/icons-eva/pie-chart-2-fill';
-import alertTriangleFill from '@iconify/icons-eva/alert-triangle-fill';
 import EventIcon from '@mui/icons-material/Event';
+import LocationCityIcon from '@mui/icons-material/LocationCity';
+import HomeIcon from '@mui/icons-material/Home';
+import ClassIcon from '@mui/icons-material/Class';
 
 // ----------------------------------------------------------------------
-
-const getIcon = (name) => <Icon icon={name} width={22} height={22} />;
 
 const sidebarConfig = [
   {
     title: 'Inicio',
     path: '/dashboard/app',
-    icon: getIcon(pieChart2Fill)
+    icon: <HomeIcon />
   },
   {
     title: 'eventos',
@@ -21,20 +19,14 @@ const sidebarConfig = [
   {
     title: 'salas',
     path: '/dashboard/sala',
-    icon: getIcon(alertTriangleFill)
+    icon: <LocationCityIcon />
   },
   {
     title: 'modulos',
     path: '/dashboard/modulo',
-    icon: getIcon(alertTriangleFill)
+    icon: <ClassIcon/>
   },
 
-
-  {
-    title: 'Not found',
-    path: '/404',
-    icon: getIcon(alertTriangleFill)
-  }
 ];
 
 export default sidebarConfig;
