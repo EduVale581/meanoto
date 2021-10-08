@@ -9,6 +9,7 @@ import palette from './palette';
 import typography from './typography';
 import componentsOverride from './overrides';
 import shadows, { customShadows } from './shadows';
+import { esES } from '@mui/material/locale';
 
 // ----------------------------------------------------------------------
 
@@ -28,7 +29,7 @@ export default function ThemeConfig({ children }) {
     []
   );
 
-  const theme = createTheme(themeOptions);
+  const theme = createTheme(themeOptions, esES );
   theme.components = componentsOverride(theme);
 
   return (

@@ -1,6 +1,7 @@
 import { Icon } from '@iconify/react';
 import pieChart2Fill from '@iconify/icons-eva/pie-chart-2-fill';
 import alertTriangleFill from '@iconify/icons-eva/alert-triangle-fill';
+import EventIcon from '@mui/icons-material/Event';
 
 // ----------------------------------------------------------------------
 
@@ -15,7 +16,7 @@ const sidebarConfig = [
   {
     title: 'eventos',
     path: '/dashboard/evento',
-    icon: getIcon(alertTriangleFill)
+    icon: <EventIcon />
   },
   {
     title: 'salas',
