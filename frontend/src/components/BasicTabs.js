@@ -50,13 +50,13 @@ export default function BasicTabs({ panels }) {
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
         <Tabs value={value} onChange={handleChange} aria-label="basic tabs example">
           {panels.map( ( p, idx ) => (
-            <Tab label={p.label} {...a11yProps(idx)} />
+            <Tab key={ idx } label={ p.label } { ...a11yProps( idx ) } />
           ) )}
         </Tabs>
       </Box>
       {
         panels.map( ( p, idx ) => (
-          <TabPanel value={value} index={idx}>
+          <TabPanel index={ idx } key={ idx } value={ value }>
             {p.component}
           </TabPanel>
         ) )
