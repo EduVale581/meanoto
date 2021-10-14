@@ -17,18 +17,20 @@ import {
   DialogContent,
   DialogContentText,
   DialogActions,
-  TextField
+  TextField,
+  LinearProgress
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 // components
 import Page from '../components/Page';
 import CardModulos from 'src/components/modulos/CardModulos';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const Input = styled('input')({
   display: 'none',
 });
 
+const API = "http://127.0.0.1:8000";
 export default function Modulos() {
 
   const user = "ADMIN";
@@ -41,13 +43,7 @@ export default function Modulos() {
   const [carrerasFiltradas, setCarrerasFiltradas] = useState([]);
 
 
-  const [modulosArreglo, setModulosArreglo] = useState([
-    { nombre: "Nombre", profesor: 0, facultad: "Ingeniería", carrera: "Ingeniería Civil en Computación", alumnos: 10, id: 0 },
-    { nombre: "Nombre", profesor: 0, facultad: "Ingeniería", carrera: "Ingeniería Civil en Computación", alumnos: 10, id: 1 },
-    { nombre: "Nombre", profesor: 0, facultad: "Ingeniería", carrera: "Ingeniería Civil en Computación", alumnos: 10, id: 2 },
-    { nombre: "Nombre", profesor: 0, facultad: "Ingeniería", carrera: "Ingeniería Civil en Computación", alumnos: 10, id: 3 },
-    { nombre: "Nombre", profesor: 0, facultad: "Ingeniería", carrera: "Ingeniería Civil en Computación", alumnos: 10, id: 4 }
-  ]);
+  const [modulosArreglo, setModulosArreglo] = useState(null);
 
   const facultadesArreglo = [
     { nombre: "Economía y Negocios" },
@@ -99,7 +95,7 @@ export default function Modulos() {
     { nombre: "Bioquímica", facultad: "Rectoría" }
   ]
 
-  const [modulosMostrar, setModulosMostrar] = useState(modulosArreglo);
+
 
   const handleChangeFacultadSeleccionadaModal = (event) => {
     setFacultadSeleccionadaModal(event.target.value);
@@ -141,8 +137,34 @@ export default function Modulos() {
   const handleOpenModulo = () => setOpenCrearModulo(true);
   const handleCloseModulo = () => setOpenCrearModulo(false);
 
+  const getModulos = async () => {
+    const res = await fetch(`${API}/modulos`);
+    const data = await res.json();
+    console.log(data)
+    setModulosArreglo(data)
+    if (facultadSeleccionadaFiltro === "Sin filtro") {
+      setModulosMostrar(data)
+
+    }
+    if (carreraSeleccionadaFiltro === "Sin filtro" && facultadSeleccionadaFiltro === "Sin filtro") {
+      setModulosMostrar(data)
+
+    }
+    else if (carreraSeleccionadaFiltro === "Sin filtro" && facultadSeleccionadaFiltro !== "Sin filtro") {
+      setModulosMostrar(data.filter((e) => e.facultad === facultadSeleccionadaFiltro))
+
+    }
+    else {
+      setModulosMostrar(data.filter((e) => e.facultad === facultadSeleccionadaFiltro && e.carrera === carreraSeleccionadaFiltro))
+    }
+  };
 
 
+  useEffect(() => {
+    getModulos();
+  }, []);
+
+  const [modulosMostrar, setModulosMostrar] = useState(modulosArreglo);
 
 
   return (
@@ -252,12 +274,20 @@ export default function Modulos() {
         <Grid container spacing={2} xs={12}>
 
 
-          {modulosMostrar.map((e, index) => {
-            return (<Grid item key={index} xs={6} md={4}>
-              <CardModulos modulo={e} setModulos={setModulosArreglo} modulos={modulosArreglo} />
-            </Grid>);
+          {modulosMostrar && modulosMostrar.length >= 1 ? (
+            modulosMostrar.map((e, index) => {
+              return (<Grid item key={index} xs={6} md={4}>
+                <CardModulos modulo={e} getModulos={getModulos} />
+              </Grid>);
 
-          })}
+            })) : (
+            <Grid item xs={12} md={12}>
+              <LinearProgress />
+
+            </Grid>
+
+          )
+          }
 
         </Grid>
 

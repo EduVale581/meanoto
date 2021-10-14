@@ -17,9 +17,8 @@ import {
     Dialog,
     DialogContent,
     DialogContentText,
-    DialogActions
-
-
+    DialogActions,
+    TextField
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
@@ -27,25 +26,62 @@ import PersonIcon from '@mui/icons-material/Person';
 import AddIcon from '@mui/icons-material/Add';
 import { blue } from '@mui/material/colors';
 
-export default function CardModulos({ modulo, setModulos, modulos }) {
-    const user = "ADMIN";
-    const { nombre, profesor, facultad, carrera, alumnos, id } = modulo;
+const API = "http://127.0.0.1:8000";
+
+export default function CardModulos({ modulo, getModulos }) {
+    const user = "Admin";
+    const { nombre, profesor, facultad, carrera, nro_alumnos, id } = modulo;
     const [openCrearModulo, setOpenCrearModulo] = useState(false);
+    const [openEditarCantidadAlumnos, setOpenEditarCantidadAlumnos] = useState(false);
+
+    const [cantEstudiantes, setCantEstudiantes] = useState(nro_alumnos);
+
+
 
     const [estudiantes, setEstudiantes] = useState(['Macarena De Las Mercedes Parrau Gallardo', 'Jacqueline Farías López', "Luis Alfredo Arce Contreras", "Aladino Segundo Espinoza Saavedra", "Luis Rodríguez Alcina", "Eduardo Javier Aracena Ávalos", "Ramón Velásquez Cayupe", "Ximena Loreto Sánchez Figueroa", "Isabel Margarita Pérez Moore"]);
 
     const handleOpenModulo = () => setOpenCrearModulo(true);
     const handleCloseModulo = () => setOpenCrearModulo(false);
+
+    const handleOpenEditarEstudiantes = () => setOpenEditarCantidadAlumnos(true);
+    const handleCloseEditarEstudiantes = () => {
+        setCantEstudiantes(0)
+        setOpenEditarCantidadAlumnos(false)
+    };
+
+    const guardarCantidadEstudiantes = async () => {
+        let nro_alumnos = cantEstudiantes;
+
+        const res = await fetch(`${API}/modulos/${id}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                nro_alumnos,
+            }),
+        });
+        const data = await res.json();
+        getModulos();
+        setOpenEditarCantidadAlumnos(false)
+    };
+
+    const handleChangeCantidadEstudiantes = (event) => {
+        setCantEstudiantes(event.target.value);
+    };
     return (
         <Card>
 
             <Box>
                 <Grid container xs={12} md={12} spacing={2}>
                     <Grid item xs={10} md={10}>
-                        {user === "ADMIN" && (
+                        {user !== "Admin" && user !== "Profesor" ? (
+                            <div>
+                            </div>
+                        ) : (
                             <div>
                                 <IconButton
-                                    onClick={() => { console.log(id) }}
+                                    onClick={handleOpenEditarEstudiantes}
                                     aria-label="delete"
                                     size="large"
                                 >
@@ -56,15 +92,20 @@ export default function CardModulos({ modulo, setModulos, modulos }) {
                         }
 
                     </Grid>
-
-
-
-
                     <Grid item xs={2} md={2} >
-                        {user === "ADMIN" && (
+                        {user === "Admin" && (
                             <div>
                                 <IconButton
-                                    onClick={() => { console.log(id) }}
+                                    onClick={async () => {
+                                        const res = await fetch(`${API}/modulos/${id}`, {
+                                            method: "DELETE",
+                                            headers: {
+                                                "Content-Type": "application/json",
+                                            },
+                                        });
+                                        const data = await res.json();
+                                        getModulos();
+                                    }}
                                     aria-label="delete"
                                     size="large"
                                     color="error"
@@ -75,13 +116,9 @@ export default function CardModulos({ modulo, setModulos, modulos }) {
                             </div>
                         )
                         }
-
                     </Grid>
-
                 </Grid>
-
             </Box>
-
             <CardActionArea>
                 <CardContent
                     onClick={handleOpenModulo}
@@ -126,7 +163,7 @@ export default function CardModulos({ modulo, setModulos, modulos }) {
                             sx={{
                                 color: 'text.disabled'
                             }}>
-                            Alumnos: {alumnos}
+                            Alumnos: {nro_alumnos}
                         </Typography>
                     </Stack>
                 </CardContent>
@@ -144,7 +181,7 @@ export default function CardModulos({ modulo, setModulos, modulos }) {
                         <Typography variant="h5" noWrap style={{ paddingLeft: 10 }}>
                             Estudiantes
                         </Typography>
-                        {user === "ADMIN" && (
+                        {user === "Admin" && (
                             <ListItem autoFocus button>
                                 <ListItemAvatar>
                                     <Avatar>
@@ -172,7 +209,7 @@ export default function CardModulos({ modulo, setModulos, modulos }) {
                                             </Avatar>
                                         </ListItemAvatar>
                                         <ListItemText primary={email} />
-                                        {user === "ADMIN" && (
+                                        {user === "Admin" && (
                                             <IconButton
                                                 onClick={() => { console.log(id) }}
                                                 aria-label="delete"
@@ -196,6 +233,44 @@ export default function CardModulos({ modulo, setModulos, modulos }) {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleCloseModulo} color="secondary">Cerrar</Button>
+                </DialogActions>
+            </Dialog>
+
+            <Dialog
+                open={openEditarCantidadAlumnos}
+                aria-labelledby="alert-dialog-title"
+                aria-describedby="alert-dialog-description"
+                fullWidth
+            >
+                <DialogTitle id="alert-dialog-title">
+                    <Stack>
+                        <Typography variant="h5" noWrap style={{ paddingLeft: 10 }}>
+                            Editar Cantidad Estudiantes
+                        </Typography>
+                    </Stack>
+
+                </DialogTitle>
+                <DialogContent>
+                    <DialogContentText id="alert-dialog-description">
+                        <Grid container xs={12} spacing={2}>
+                            <Grid item xs={12} style={{ marginLeft: 10, marginTop: 10 }}>
+
+                                <TextField
+                                    label="Cantidad Estudiantes"
+                                    variant="outlined"
+                                    fullWidth
+                                    value={cantEstudiantes}
+                                    onChange={handleChangeCantidadEstudiantes}
+                                />
+                            </Grid>
+
+
+                        </Grid>
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleCloseEditarEstudiantes} color="secondary">Cerrar</Button>
+                    <Button onClick={guardarCantidadEstudiantes} color="primary" variant="contained">Editar</Button>
                 </DialogActions>
             </Dialog>
         </Card>
