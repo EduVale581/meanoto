@@ -42,14 +42,19 @@ def getModulos():
     modulos = []
     for doc in db.db.modulos.find():    
         profesor = db.db.profesores.find_one({"_id": doc['profesor']})
+        facultad = db.db.facultades.find_one({"_id": doc['facultad']})
         nombreProfesor = ""
+        nombreFacultad = ""
         if profesor is not None:
             nombreProfesor = profesor['nombre']+" "+profesor['apellido']
+        if facultad is not None:
+            nombreFacultad = facultad['nombre']
+
         modulos.append({
             'id': doc['_id'],
             'nombre': doc['nombre'],
             'profesor': nombreProfesor,
-            'facultad': doc['facultad'],
+            'facultad': nombreFacultad,
             'nro_alumnos': doc['nro_alumnos'],
             'carrera': doc['carrera'],
             'eventos': doc['eventos']

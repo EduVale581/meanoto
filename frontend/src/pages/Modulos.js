@@ -114,7 +114,7 @@ export default function Modulos() {
       setModulosMostrar(modulosArreglo)
     }
     else {
-      setModulosMostrar(modulosMostrar.filter((e) => e.facultad === event.target.value))
+      setModulosMostrar(modulosArreglo.filter((e) => e.facultad === event.target.value))
     }
 
   };
@@ -130,7 +130,7 @@ export default function Modulos() {
 
     }
     else {
-      setModulosMostrar(modulosMostrar.filter((e) => e.facultad === facultadSeleccionadaFiltro && e.carrera === event.target.value))
+      setModulosMostrar(modulosArreglo.filter((e) => e.facultad === facultadSeleccionadaFiltro && e.carrera === event.target.value))
     }
   };
 

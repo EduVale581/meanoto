@@ -73,7 +73,7 @@ export default function CardModulos({ modulo, getModulos }) {
         <Card>
 
             <Box>
-                <Grid container xs={12} md={12} spacing={2}>
+                <Grid container xs={12} spacing={2}>
                     <Grid item xs={10} md={10}>
                         {user !== "Admin" && user !== "Profesor" ? (
                             <div>
@@ -196,7 +196,7 @@ export default function CardModulos({ modulo, getModulos }) {
                     </Stack>
 
                 </DialogTitle>
-                <DialogContent dividers={"paper"}>
+                <DialogContent dividers={true}>
                     <DialogContentText id="alert-dialog-description">
                         <Grid container xs={12} spacing={2}>
                             <Grid item xs={12} style={{ marginLeft: 10, marginTop: 10 }}>
