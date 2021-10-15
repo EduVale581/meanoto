@@ -10,6 +10,7 @@ import NotFound from './pages/Page404';
 import Eventos from './pages/Eventos';
 import Salas from './pages/Salas';
 import Modulos from './pages/Modulos';
+import Profesores from './pages/Profesores';
 
 // ----------------------------------------------------------------------
 
@@ -24,6 +25,7 @@ export default function Router() {
         { path: 'evento', element: <Eventos /> },
         { path: 'sala', element: <Salas /> },
         { path: 'modulo', element: <Modulos /> },
+        { path: 'profesores', element: <Profesores /> },
       ]
     },
     {

@@ -11,22 +11,19 @@ import TableSortLabel from '@mui/material/TableSortLabel';
 import Paper from '@mui/material/Paper';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
-import EventSeatIcon from '@mui/icons-material/EventSeat';
-import AddLocationIcon from '@mui/icons-material/AddLocation';
+import MoreIcon from '@mui/icons-material/More';
 import { visuallyHidden } from '@mui/utils';
 import axios from 'axios';
 
 import SearchBar from '../SearchBar';
-import RoomAssignmentDialog from './RoomAssignmentDialog';
+// import RoomAssignmentDialog from './RoomAssignmentDialog';
 
-function createData(id, nombre, modulo, profesor, sala, fecha) {
+function createData(id, apellido, nombre, correo ) {
   return {
     id,
+    apellido,
     nombre,
-    modulo,
-    profesor,
-    sala,
-    fecha,
+    correo,
   };
 }
 
@@ -62,34 +59,22 @@ function stableSort(array, comparator) {
 
 const headCells = [
   {
-    id: 'nombre',
+    id: 'apellido',
     numeric: false,
     disablePadding: true,
+    label: 'Apellido',
+  },
+  {
+    id: 'nombre',
+    numeric: true,
+    disablePadding: false,
     label: 'Nombre',
   },
   {
-    id: 'modulo',
+    id: 'correo',
     numeric: true,
     disablePadding: false,
-    label: 'Módulo',
-  },
-  {
-    id: 'profesor',
-    numeric: true,
-    disablePadding: false,
-    label: 'Profesor',
-  },
-  {
-    id: 'sala',
-    numeric: true,
-    disablePadding: false,
-    label: 'Sala',
-  },
-  {
-    id: 'fecha',
-    numeric: true,
-    disablePadding: false,
-    label: 'Fecha',
+    label: 'Correo',
   },
   {
     id: 'button',
@@ -134,42 +119,42 @@ function EnhancedTableHead(props) {
   );
 }
 
-export default function EnhancedTable() {
+export default function ProfesoresTable() {
   const [order, setOrder] = useState('asc');
   const [orderBy, setOrderBy] = useState('calories');
   const [selectedId, setSelectedId] = useState();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
-  const [events, setEvents] = useState([]);
+  const [teachers, setTeachers] = useState([]);
   const [rows, setRows] = useState([
-    createData('22654', 'Laboratorio 1', 'Cálculo 1', 'Juan López', 'S1', '2020-08-22'),
-    createData('35485', 'Clase 1', 'Cálculo 2', 'John López', 'A22', '2020-10-22'),
-    createData('55564', 'Laboratorio 11', 'Cálculo 3', 'Eduardo Salcedo', '', '2020-08-12'),
+    createData('22654', 'Soto', 'Alejandro', 'ale@utalca.cl'),
+    createData('82614', 'Covarrubias', 'Pablo', 'cova@utalca.cl'),
+    createData('72650', 'Ivanicevic', 'Ivan', 'ivan@utalca.cl'),
   ]);
   const [selectedRow, setSelectedRow] = useState();
-  const [showRoomAssignmentDialog, setShowRoomAssignmentDialog] = useState(false);
+  const [showNewProfessorDialog, setShowNewProfessorDialog] = useState(false);
 
   useEffect( () => {
-    setEvents([
+    setTeachers([
       {
-        _id: 123,
-        bloque: 5,
-        fecha: Date.now(),
-        fecha_creacion: Date.now(),
-        modulo: "615cd601c9c677bba738f800",
-        nombre: "Clase 1 práctica",
-        profesor: "615cd5a9c9c677bba738f7ff",
-        codigo: "TECWEB2020",
-        estado: "disponible",
-        fecha_fin_recurrencia: "2020-08-15T04:00:00.000Z",
-        fecha_inicio_recurrencia: "2020-07-11T04:00:00.000Z",
-        maximo_asistentes: 22,
-        recurrencia: "semanal",
-        sala: "615cd775c9c677bba738f805",
-        asistentes: [
-          { "presente": false, "asistente": "615ce862c9c677bba738f82d" }
-        ]
-      }
+        _id: 22654,
+        nombre: "Alejandro",
+        apellido: "Soto",
+        correo: "ale@utalca.cl"
+      },
+      {
+        _id: 82614,
+        nombre: "Pablo",
+        apellido: "Covarrubias",
+        correo: "cova@utalca.cl"
+      },
+      {
+        _id: 72650,
+        nombre: "Ivan",
+        apellido: "Ivanicevic",
+        correo: "ivan@utalca.cl"
+      },
+
     ])
   }, []);
 
@@ -200,8 +185,8 @@ export default function EnhancedTable() {
   const emptyRows =
     page > 0 ? Math.max(0, (1 + page) * rowsPerPage - rows.length) : 0;
 
-  const handleAddLocation = (row) => {
-    setShowRoomAssignmentDialog(true);
+  const handleShowTeacherDetails = (row) => {
+    setShowNewProfessorDialog(true);
   }
 
   return (
@@ -249,29 +234,25 @@ export default function EnhancedTable() {
                         scope="row"
                         padding="none"
                       >
-                        {row.nombre}
+                        {row.apellido}
                       </TableCell>
-                      <TableCell align="right">{row.modulo}</TableCell>
-                      <TableCell align="right">{row.profesor}</TableCell>
-                      <TableCell align="right">
-                        {row.sala || (
-                          <IconButton onClick={ () => handleAddLocation(row) }>
-                            <AddLocationIcon/>
-                          </IconButton>
-                        )}
-                      </TableCell>
-                      <TableCell align="right">{row.fecha}</TableCell>
+                      <TableCell align="right">{row.nombre}</TableCell>
+                      <TableCell align="right">{row.correo}</TableCell>
+
                       <TableCell align="right">
 
-                        <Tooltip title="Reservar">
-                          <IconButton>
-                            <EventSeatIcon/>
+                        <Tooltip title="Ver más">
+                          <IconButton onClick={ () => handleShowTeacherDetails(row) }>
+                            <MoreIcon/>
                           </IconButton>
                         </Tooltip>
+
                       </TableCell>
+
                     </TableRow>
                   );
                 })}
+
               {emptyRows > 0 && (
                 <TableRow style={{ height: 33 * emptyRows }} >
                   <TableCell colSpan={6} />
@@ -290,15 +271,6 @@ export default function EnhancedTable() {
           onRowsPerPageChange={handleChangeRowsPerPage}
         />
       </Paper>
-
-      { showRoomAssignmentDialog && (
-        <RoomAssignmentDialog
-          open={showRoomAssignmentDialog}
-          handleClose={ () => setShowRoomAssignmentDialog(false) }
-          event={events[0]}
-        />
-      ) }
-
     </Box>
   );
 }
