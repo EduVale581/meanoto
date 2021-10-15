@@ -55,9 +55,9 @@ export default function Schedule() {
         <Table stickyHeader aria-label="sticky table">
           <TableHead>
             <TableRow>
-              {columns.map((column) => (
+              {columns.map((column, idx) => (
                 <TableCell
-                  key={column.id}
+                  key={idx}
                   align={column.align}
                   style={{ minWidth: column.minWidth }}
                 >
@@ -69,9 +69,9 @@ export default function Schedule() {
           <TableBody>
             {rows
               // .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              .map((row) => {
+              .map((row, idx) => {
                 return (
-                  <TableRow hover role="checkbox" tabIndex={-1} key={row.code}>
+                  <TableRow hover key={ idx } role="checkbox" tabIndex={ -1 }>
                     {columns.map((column) => {
                       const value = row[column.id];
                       return (

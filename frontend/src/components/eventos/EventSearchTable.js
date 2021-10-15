@@ -1,5 +1,4 @@
-import * as React from 'react';
-import PropTypes from 'prop-types';
+import React, { useState, useEffect, useCallback} from 'react';
 import Box from '@mui/material/Box';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -13,12 +12,16 @@ import Paper from '@mui/material/Paper';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 import EventSeatIcon from '@mui/icons-material/EventSeat';
+import AddLocationIcon from '@mui/icons-material/AddLocation';
 import { visuallyHidden } from '@mui/utils';
+import axios from 'axios';
 
 import SearchBar from './SearchBar';
+import RoomAssignmentDialog from './RoomAssignmentDialog';
 
-function createData(nombre, modulo, profesor, sala, fecha) {
+function createData(id, nombre, modulo, profesor, sala, fecha) {
   return {
+    id,
     nombre,
     modulo,
     profesor,
@@ -26,12 +29,6 @@ function createData(nombre, modulo, profesor, sala, fecha) {
     fecha,
   };
 }
-
-const rows = [
-  createData('Laboratorio 1', 'Cálculo 1', 'Juan López', 'S1', '2020-08-22'),
-  createData('Clase 1', 'Cálculo 2', 'John López', 'A22', '2020-10-22'),
-  createData('Laboratorio 1', 'Cálculo 3', 'Eduardo Salcedo', 'S2', '2020-08-12'),
-];
 
 function descendingComparator(a, b, orderBy) {
   if (b[orderBy] < a[orderBy]) {
@@ -137,21 +134,44 @@ function EnhancedTableHead(props) {
   );
 }
 
-EnhancedTableHead.propTypes = {
-  onRequestSort: PropTypes.func.isRequired,
-  order: PropTypes.oneOf(['asc', 'desc']).isRequired,
-  orderBy: PropTypes.string.isRequired,
-  rowCount: PropTypes.number.isRequired,
-};
-
-
-
 export default function EnhancedTable() {
-  const [order, setOrder] = React.useState('asc');
-  const [orderBy, setOrderBy] = React.useState('calories');
-  const [selected, setSelected] = React.useState([]);
-  const [page, setPage] = React.useState(0);
-  const [rowsPerPage, setRowsPerPage] = React.useState(5);
+  const [order, setOrder] = useState('asc');
+  const [orderBy, setOrderBy] = useState('calories');
+  const [selectedId, setSelectedId] = useState();
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [events, setEvents] = useState([]);
+  const [rows, setRows] = useState([
+    createData('22654', 'Laboratorio 1', 'Cálculo 1', 'Juan López', 'S1', '2020-08-22'),
+    createData('35485', 'Clase 1', 'Cálculo 2', 'John López', 'A22', '2020-10-22'),
+    createData('55564', 'Laboratorio 11', 'Cálculo 3', 'Eduardo Salcedo', '', '2020-08-12'),
+  ]);
+  const [selectedRow, setSelectedRow] = useState();
+  const [showRoomAssignmentDialog, setShowRoomAssignmentDialog] = useState(false);
+
+  useEffect( () => {
+    setEvents([
+      {
+        _id: 123,
+        bloque: 5,
+        fecha: Date.now(),
+        fecha_creacion: Date.now(),
+        modulo: "615cd601c9c677bba738f800",
+        nombre: "Clase 1 práctica",
+        profesor: "615cd5a9c9c677bba738f7ff",
+        codigo: "TECWEB2020",
+        estado: "disponible",
+        fecha_fin_recurrencia: "2020-08-15T04:00:00.000Z",
+        fecha_inicio_recurrencia: "2020-07-11T04:00:00.000Z",
+        maximo_asistentes: 22,
+        recurrencia: "semanal",
+        sala: "615cd775c9c677bba738f805",
+        asistentes: [
+          { "presente": false, "asistente": "615ce862c9c677bba738f82d" }
+        ]
+      }
+    ])
+  }, []);
 
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === 'asc';
@@ -159,24 +179,10 @@ export default function EnhancedTable() {
     setOrderBy(property);
   };
 
-  const handleClick = (event, name) => {
-    const selectedIndex = selected.indexOf(name);
-    let newSelected = [];
-
-    if (selectedIndex === -1) {
-      newSelected = newSelected.concat(selected, name);
-    } else if (selectedIndex === 0) {
-      newSelected = newSelected.concat(selected.slice(1));
-    } else if (selectedIndex === selected.length - 1) {
-      newSelected = newSelected.concat(selected.slice(0, -1));
-    } else if (selectedIndex > 0) {
-      newSelected = newSelected.concat(
-        selected.slice(0, selectedIndex),
-        selected.slice(selectedIndex + 1),
-      );
-    }
-
-    setSelected(newSelected);
+  const handleClick = (event, row) => {
+    console.log("la row", row);
+    setSelectedId(row.id);
+    setSelectedRow(row);
   };
 
   const handleChangePage = (event, newPage) => {
@@ -188,11 +194,15 @@ export default function EnhancedTable() {
     setPage(0);
   };
 
-  const isSelected = (name) => selected.indexOf(name) !== -1;
+  const isSelected = (id) => selectedId === id;
 
   // Avoid a layout jump when reaching the last page with empty rows.
   const emptyRows =
     page > 0 ? Math.max(0, (1 + page) * rowsPerPage - rows.length) : 0;
+
+  const handleAddLocation = (row) => {
+    setShowRoomAssignmentDialog(true);
+  }
 
   return (
     <Box sx={{ width: '100%' }}>
@@ -226,11 +236,11 @@ export default function EnhancedTable() {
                   return (
                     <TableRow
                       hover
-                      onClick={(event) => handleClick(event, row.name)}
+                      onClick={(event) => handleClick(event, row)}
                       role="checkbox"
                       aria-checked={isItemSelected}
                       tabIndex={-1}
-                      key={row.name}
+                      key={index}
                       // selected={isItemSelected}
                     >
                       <TableCell
@@ -243,7 +253,13 @@ export default function EnhancedTable() {
                       </TableCell>
                       <TableCell align="right">{row.modulo}</TableCell>
                       <TableCell align="right">{row.profesor}</TableCell>
-                      <TableCell align="right">{row.sala}</TableCell>
+                      <TableCell align="right">
+                        {row.sala || (
+                          <IconButton onClick={ () => handleAddLocation(row) }>
+                            <AddLocationIcon/>
+                          </IconButton>
+                        )}
+                      </TableCell>
                       <TableCell align="right">{row.fecha}</TableCell>
                       <TableCell align="right">
 
@@ -274,6 +290,14 @@ export default function EnhancedTable() {
           onRowsPerPageChange={handleChangeRowsPerPage}
         />
       </Paper>
+
+      { showRoomAssignmentDialog && (
+        <RoomAssignmentDialog
+          open={showRoomAssignmentDialog}
+          handleClose={ () => setShowRoomAssignmentDialog(false) }
+          event={events[0]}
+        />
+      ) }
 
     </Box>
   );
