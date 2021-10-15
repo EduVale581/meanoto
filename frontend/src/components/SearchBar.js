@@ -4,7 +4,8 @@ import InputBase from '@mui/material/InputBase';
 import IconButton from '@mui/material/IconButton';
 import SearchIcon from '@mui/icons-material/Search';
 
-export default function SearchBar() {
+export default function SearchBar({ placeholder, onSearch }) {
+
   return (
     <Paper
       component="form"
@@ -12,7 +13,7 @@ export default function SearchBar() {
     >
       <InputBase
         sx={{ ml: 1, flex: 1 }}
-        placeholder="Busca eventos"
+        placeholder={placeholder}
         inputProps={{ 'aria-label': 'search google maps' }}
       />
       <IconButton type="submit" sx={{ p: '10px' }} aria-label="search">
