@@ -2,7 +2,26 @@ import { Icon } from '@iconify/react';
 import plusFill from '@iconify/icons-eva/plus-fill';
 import { Link as RouterLink } from 'react-router-dom';
 // material
-import { Button, Container, Stack, Typography, Grid, Paper, InputLabel, FormControl, Select, MenuItem, Slider, Switch, List} from '@mui/material';
+import { Button, 
+  Container, 
+  Stack, 
+  Typography, 
+  Grid, 
+  Paper, 
+  InputLabel, 
+  FormControl, 
+  Select, 
+  MenuItem, 
+  Slider, 
+  Switch, 
+  List, 
+  Dialog, 
+  DialogTitle, 
+  DialogContent, 
+  DialogContentText,
+  TextField,
+  DialogActions
+} from '@mui/material';
 import MuiInput from '@mui/material/Input';
 import { styled } from '@mui/material/styles';
 import Page from '../components/Page';
@@ -21,17 +40,17 @@ export default function Salas() {
 
   const user = "ADMIN";
   
+
   const [openCrearSala, setOpenCrearSala] = useState(false);
   const [facultadSeleccionadaModal, setFacultadSeleccionadaModal] = useState("");
   const [facultadSeleccionadaFiltro, setFacultadSeleccionadaFiltro] = useState("Sin filtro");
 
 
   const [salasArreglo, setSalasArreglo] = useState([
-    { nombre: "Turing", aforo: 20, facultad: "Ingeniería", disponibilidad: "Libre", aforoActual: 0, nombreEvento: "" },
-    { nombre: "11", aforo: 30, facultad: "Ingeniería", disponibilidad: "Ocupado", aforoActual: 10, nombreEvento: "Clase 5" },
-    { nombre: "21", aforo: 40, facultad: "Ingeniería", disponibilidad: "Libre", aforoActual: 0, nombreEvento: "" },
-    { nombre: "22", aforo: 60, facultad: "Ingeniería", disponibilidad: "Libre", aforoActual: 0, nombreEvento: "" },
-    { nombre: "10", aforo: 60, facultad: "Ingeniería", disponibilidad: "Ocupado", aforoActual: 61, nombreEvento: "Reunión Corporativo" }
+    { nombre: "Turing", aforo: 20, facultad: "Ingeniería", disponibilidad: "Libre", aforoActual: 0, nombreEvento: "", fechaEvento:0, nombreModulo:"", profesor:"" },
+    { nombre: "11", aforo: 30, facultad: "Ingeniería", disponibilidad: "Ocupado", aforoActual: 10, nombreEvento: "Clase 5", fechaEvento:"9/11/2021", nombreModulo:"Calculo I", profesor:"Felipe Kast"  },
+    { nombre: "21", aforo: 40, facultad: "Ingeniería", disponibilidad: "Ocupado", aforoActual: 15, nombreEvento: "Clase 1 - Introducción", fechaEvento:"10/12/2021", nombreModulo:"Pensamiento compútacional", profesor:"Daniel Moreno"  },
+    { nombre: "22", aforo: 60, facultad: "Ingeniería", disponibilidad: "Libre", aforoActual: 0, nombreEvento: "", fechaEvento:0, nombreModulo:"", profesor:""  }
   ]);
 
   const facultadesArreglo = [
@@ -49,6 +68,9 @@ export default function Salas() {
   const [salasMostrar, setSalasMostrar] = useState(salasArreglo);
 
 
+  const handleChangeFacultadSeleccionadaModal = (event) => {
+    setFacultadSeleccionadaModal(event.target.value);
+  };
 
   const handleChangeFacultadSeleccionadaFiltro = (event) => {
     setFacultadSeleccionadaFiltro(event.target.value);
@@ -87,6 +109,8 @@ export default function Salas() {
     setDisponible(event.target.checked);
   };
 
+  const handleOpenSala = () => setOpenCrearSala(true);
+  const handleCloseSala = () => setOpenCrearSala(false);
   return (
     <Page title="MeAnoto">
       <Container>
@@ -98,6 +122,7 @@ export default function Salas() {
           <Button
             variant="contained"
             component={RouterLink}
+            onClick={handleOpenSala}
             to="#"
             startIcon={<Icon icon={plusFill} />}
           >
@@ -114,7 +139,7 @@ export default function Salas() {
                     <label htmlFor="contained-button-file">
                       <Input accept="image/*" id="contained-button-file" multiple type="file" />
                       <Button variant="contained" component="span" fullWidth>
-                        Subir módulos desde archivo
+                        Subir salas desde archivo
                       </Button>
                     </label>
                   </Grid>
@@ -216,6 +241,55 @@ export default function Salas() {
         </List>
 
       </Container>
+
+       { /*nombre: "10", aforo: 60, facultad: "Ingeniería", disponibilidad: "Ocupado", aforoActual: 61, nombreEvento: "Reunión Corporativo" */ } 
+
+      <Dialog
+        open={openCrearSala}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+        fullWidth
+      >
+        <DialogTitle id="alert-dialog-title">
+          Nueva Sala
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            <Grid container xs={12} spacing={2}>
+              <Grid item xs={12} style={{ marginLeft: 10, marginTop: 10 }}>
+                <TextField label="Nombre de la sala" variant="outlined" fullWidth required />
+              </Grid>
+              <Grid item xs={12} style={{ marginLeft: 10 }}>
+                <TextField label="Aforo de estudiantes" variant="outlined" fullWidth required />
+              </Grid>
+              <Grid item xs={12} style={{ marginLeft: 10 }}>
+                <FormControl fullWidth>
+                  <InputLabel id="selectFacultades">Facultades</InputLabel>
+                  <Select
+                    labelId="selectFacultades"
+                    id="demo-simple-select"
+                    value={facultadSeleccionadaModal}
+                    label="Facultades"
+                    onChange={handleChangeFacultadSeleccionadaModal}
+                  >
+                    {facultadesArreglo.map((e, index) => {
+                      return (<MenuItem key={index} value={e.nombre}>{e.nombre}</MenuItem>);
+
+                    })}
+                  </Select>
+                </FormControl>
+              </Grid>
+
+            </Grid>
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseSala} color="secondary">Cerrar</Button>
+          <Button onClick={handleCloseSala} variant="contained" autoFocus>
+            Crear
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Page>
   );
 }
