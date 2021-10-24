@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     Box,
     Card,
@@ -18,7 +18,11 @@ import {
     DialogContent,
     DialogContentText,
     DialogActions,
-    TextField
+    TextField,
+    FormControl,
+    InputLabel,
+    Select,
+    MenuItem,
 } from '@mui/material';
 import LoadingButton from '@mui/lab/LoadingButton';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -31,12 +35,17 @@ const API = "http://127.0.0.1:8000";
 
 export default function CardModulos({ modulo, getModulos }) {
     const user = "Admin";
-    const { nombre, profesor, facultad, carrera, nro_alumnos, id } = modulo;
+    const { nombre, profesor, facultad, carrera, nro_alumnos, id, id_Profesor } = modulo;
     const [openCrearModulo, setOpenCrearModulo] = useState(false);
     const [openEditarCantidadAlumnos, setOpenEditarCantidadAlumnos] = useState(false);
     const [loadingEliminar, setLoadingEliminar] = useState(false);
 
+    const [loadingEditar, setLoadingEditar] = useState(false);
+
     const [cantEstudiantes, setCantEstudiantes] = useState(nro_alumnos);
+
+    const [profesores, setProfesores] = useState([]);
+    const [profesorSeleccionado, setProfesorSeleccionado] = useState(id_Profesor);
 
 
 
@@ -52,25 +61,44 @@ export default function CardModulos({ modulo, getModulos }) {
     };
 
     const guardarCantidadEstudiantes = async () => {
-        let nro_alumnos = cantEstudiantes;
+        setLoadingEditar(true);
+        let editarModulo = {
+            nro_alumnos: cantEstudiantes,
+            profesor: profesorSeleccionado,
+        }
 
         const res = await fetch(`${API}/modulos/${id}`, {
             method: "PUT",
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify({
-                nro_alumnos,
-            }),
+            body: JSON.stringify(editarModulo),
         });
         const data = await res.json();
         getModulos();
+        setLoadingEditar(false);
         setOpenEditarCantidadAlumnos(false)
     };
 
     const handleChangeCantidadEstudiantes = (event) => {
         setCantEstudiantes(event.target.value);
     };
+
+    const getProfesores = async () => {
+        const res = await fetch(`${API}/profesores`);
+        const data = await res.json();
+
+        setProfesores(data)
+    };
+
+    const handleChangeProfesorSeleccionado = (event) => {
+        setProfesorSeleccionado(event.target.value);
+    };
+
+    useEffect(() => {
+        getProfesores();
+
+    }, []);
     return (
         <Card>
 
@@ -265,13 +293,44 @@ export default function CardModulos({ modulo, getModulos }) {
                                 />
                             </Grid>
 
+                            {user === "Admin" && (
+                                <Grid item xs={12} style={{ marginLeft: 10, marginTop: 10 }}>
+
+                                    <FormControl fullWidth>
+                                        <InputLabel id="demo-simple-select-label">Profesor</InputLabel>
+                                        <Select
+                                            labelId="demo-simple-select-label"
+                                            value={profesorSeleccionado}
+                                            label="Profesor"
+                                            onChange={handleChangeProfesorSeleccionado}
+                                        >
+                                            {profesores.map((e, idx) => {
+                                                return (<MenuItem key={"profesores_" + idx} value={e.id}>{e.nombreCompleto}</MenuItem>)
+
+                                            })}
+                                        </Select>
+                                    </FormControl>
+                                </Grid>)
+                            }
+
 
                         </Grid>
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleCloseEditarEstudiantes} color="secondary">Cerrar</Button>
-                    <Button onClick={guardarCantidadEstudiantes} color="primary" variant="contained">Editar</Button>
+                    <LoadingButton
+                        onClick={handleCloseEditarEstudiantes}
+                        loading={loadingEditar}
+                    >
+                        Cerrar
+                    </LoadingButton>
+                    <LoadingButton
+                        onClick={guardarCantidadEstudiantes}
+                        loading={loadingEditar}
+                        variant="contained"
+                    >
+                        Editar
+                    </LoadingButton>
                 </DialogActions>
             </Dialog>
         </Card>

@@ -25,7 +25,8 @@ def flask_mongodb_atlas():
 @app.route('/modulos/<id>', methods=['PUT'])
 def actualizarNumAlumnos(id):
     db.db.modulos.update_one({'_id': ObjectId(id)}, {"$set": {
-        'nro_alumnos': request.json['nro_alumnos']
+        'nro_alumnos': request.json['nro_alumnos'],
+        'profesor': request.json['profesor']
     }})
     return jsonify({'message': 'Módulo Actualizado'})
 
@@ -73,11 +74,31 @@ def getModulos():
             'nombre': doc['nombre'],
             'profesor': nombreProfesor,
             'facultad': nombreFacultad,
+            'id_Profesor': doc['profesor'],
+            'id_Facultad': doc['facultad'],
             'nro_alumnos': doc['nro_alumnos'],
             'carrera': doc['carrera'],
             'eventos': doc['eventos']
         })
     return jsonify(modulos)
+
+@app.route('/profesores', methods=['GET'])
+def getProfesores():
+    profesores = []
+    for doc in db.db.profesores.find():    
+
+        profesores.append({
+            'nombreCompleto': doc['nombre']+' ' + doc['apellido'],
+            'id': doc['_id'],
+            'apellido': doc['apellido'],
+            'nombre': doc['nombre'],
+            'rut': doc['rut'],
+            'correo': doc['correo'],
+            'contrasena': doc['contrasena'],
+            'modulos': doc['modulos'],
+            'eventos': doc['eventos'],
+        })
+    return jsonify(profesores)
 
 
 if __name__ == '__main__':
