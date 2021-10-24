@@ -20,6 +20,7 @@ import {
     DialogActions,
     TextField
 } from '@mui/material';
+import LoadingButton from '@mui/lab/LoadingButton';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import PersonIcon from '@mui/icons-material/Person';
@@ -33,6 +34,7 @@ export default function CardModulos({ modulo, getModulos }) {
     const { nombre, profesor, facultad, carrera, nro_alumnos, id } = modulo;
     const [openCrearModulo, setOpenCrearModulo] = useState(false);
     const [openEditarCantidadAlumnos, setOpenEditarCantidadAlumnos] = useState(false);
+    const [loadingEliminar, setLoadingEliminar] = useState(false);
 
     const [cantEstudiantes, setCantEstudiantes] = useState(nro_alumnos);
 
@@ -95,8 +97,10 @@ export default function CardModulos({ modulo, getModulos }) {
                     <Grid item xs={2} md={2} >
                         {user === "Admin" && (
                             <div>
-                                <IconButton
+                                <LoadingButton
+                                    loading={loadingEliminar}
                                     onClick={async () => {
+                                        setLoadingEliminar(true);
                                         const res = await fetch(`${API}/modulos/${id}`, {
                                             method: "DELETE",
                                             headers: {
@@ -105,14 +109,11 @@ export default function CardModulos({ modulo, getModulos }) {
                                         });
                                         const data = await res.json();
                                         getModulos();
+                                        setLoadingEliminar(false);
                                     }}
-                                    aria-label="delete"
-                                    size="large"
                                     color="error"
-
-                                >
-                                    <DeleteIcon fontSize="inherit" />
-                                </IconButton>
+                                    startIcon={<DeleteIcon fontSize="inherit" />}
+                                />
                             </div>
                         )
                         }

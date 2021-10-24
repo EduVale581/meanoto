@@ -20,6 +20,7 @@ import {
   TextField,
   LinearProgress
 } from '@mui/material';
+import LoadingButton from '@mui/lab/LoadingButton';
 import { styled } from '@mui/material/styles';
 // components
 import Page from '../components/Page';
@@ -36,11 +37,19 @@ export default function Modulos() {
   const user = "ADMIN";
 
   const [openCrearModulo, setOpenCrearModulo] = useState(false);
-  const [carreraSeleccionadaModal, setCarreraSeleccionadaModal] = useState("");
-  const [facultadSeleccionadaModal, setFacultadSeleccionadaModal] = useState("");
   const [carreraSeleccionadaFiltro, setCarreraSeleccionadaFiltro] = useState("Sin filtro");
   const [facultadSeleccionadaFiltro, setFacultadSeleccionadaFiltro] = useState("Sin filtro");
   const [carrerasFiltradas, setCarrerasFiltradas] = useState([]);
+
+  const [loadingCrearModulo, setLoadingCrearModulo] = useState(false);
+
+
+  const [carreraSeleccionadaModal, setCarreraSeleccionadaModal] = useState("");
+  const [facultadSeleccionadaModal, setFacultadSeleccionadaModal] = useState("");
+
+  const [nombre, setNombre] = useState("");
+  const [nro_alumnos, setNroAlumnos] = useState("");
+
 
 
   const [modulosArreglo, setModulosArreglo] = useState(null);
@@ -134,8 +143,26 @@ export default function Modulos() {
     }
   };
 
+  const handleChangeNombreModulo = (event) => {
+    setNombre(event.target.value);
+
+  };
+
+  const handleChangeNumAlumnos = (event) => {
+    if (!isNaN(event.target.value) && event.target.value > 0) {
+      setNroAlumnos(event.target.value);
+    }
+    else {
+      setNroAlumnos(0);
+    }
+
+
+  };
+
   const handleOpenModulo = () => setOpenCrearModulo(true);
   const handleCloseModulo = () => setOpenCrearModulo(false);
+
+
 
   const getModulos = async () => {
     const res = await fetch(`${API}/modulos`);
@@ -157,6 +184,31 @@ export default function Modulos() {
     else {
       setModulosMostrar(data.filter((e) => e.facultad === facultadSeleccionadaFiltro && e.carrera === carreraSeleccionadaFiltro))
     }
+  };
+
+  const crearNuevoModulo = async () => {
+    setLoadingCrearModulo(true)
+    let nuevoModulo = {
+      nombre: nombre,
+      profesor: "",
+      facultad: facultadSeleccionadaModal,
+      nro_alumnos: nro_alumnos,
+      eventos: [],
+      carrera: carreraSeleccionadaModal
+    }
+    const res = await fetch(`${API}/modulos`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(nuevoModulo),
+    });
+    const data = await res.json();
+    getModulos()
+    setLoadingCrearModulo(false)
+    setOpenCrearModulo(false)
+
+
   };
 
 
@@ -309,7 +361,13 @@ export default function Modulos() {
           <DialogContentText id="alert-dialog-description">
             <Grid container xs={12} spacing={2}>
               <Grid item xs={12} style={{ marginLeft: 10, marginTop: 10 }}>
-                <TextField label="Nombre módulo" variant="outlined" fullWidth required />
+                <TextField
+                  value={nombre}
+                  onChange={handleChangeNombreModulo}
+                  label="Nombre módulo"
+                  variant="outlined"
+                  fullWidth
+                  required />
               </Grid>
 
               <Grid item xs={12} style={{ marginLeft: 10 }}>
@@ -351,17 +409,33 @@ export default function Modulos() {
 
 
               <Grid item xs={12} style={{ marginLeft: 10 }}>
-                <TextField label="Cantidad máxima estudiantes" variant="outlined" fullWidth required />
+                <TextField
+                  value={nro_alumnos}
+                  onChange={handleChangeNumAlumnos}
+                  label="Cantidad máxima estudiantes"
+                  variant="outlined"
+                  fullWidth
+                  required
+                />
               </Grid>
 
             </Grid>
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseModulo} color="secondary">Cerrar</Button>
-          <Button onClick={handleCloseModulo} variant="contained" autoFocus>
+          <LoadingButton
+            onClick={handleCloseModulo}
+            loading={loadingCrearModulo}
+          >
+            Cerrar
+          </LoadingButton>
+          <LoadingButton
+            onClick={crearNuevoModulo}
+            loading={loadingCrearModulo}
+            variant="contained"
+          >
             Crear
-          </Button>
+          </LoadingButton>
         </DialogActions>
       </Dialog>
     </Page>

@@ -29,6 +29,24 @@ def actualizarNumAlumnos(id):
     }})
     return jsonify({'message': 'Módulo Actualizado'})
 
+@app.route('/modulos', methods=['POST'])
+def agregarNuevoModulo():
+    moduloExistente = db.db.modulos.find_one({"facultad": request.json['facultad'], "carrera": request.json['carrera'] })
+    print(moduloExistente)
+    if moduloExistente is None:
+        id = db.db.modulos.insert({
+            'nombre': request.json['nombre'],
+            'profesor': request.json['profesor'],
+            'facultad': request.json['facultad'],
+            'nro_alumnos':request.json['nro_alumnos'],
+            'eventos':request.json['eventos'],
+            'carrera':request.json['carrera'],
+        })
+        print(id)
+        return jsonify({'message': 'Módulo ingresado con éxito'})
+    else:
+        return jsonify({'message': 'El módulo ingresado, ya se encuentra en nuestro registros'})
+
 
 @app.route('/modulos/<id>', methods=['DELETE'])
 def eliminarModulo(id):
