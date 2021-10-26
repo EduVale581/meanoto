@@ -165,25 +165,53 @@ export default function Modulos() {
 
 
   const getModulos = async () => {
-    const res = await fetch(`${API}/modulos`);
-    const data = await res.json();
-    console.log(data)
-    setModulosArreglo(data)
-    if (facultadSeleccionadaFiltro === "Sin filtro") {
-      setModulosMostrar(data)
+    try {
+      const token = window.localStorage.getItem('token');
+
+      const resp = await fetch(`${API}/modulos`, {
+        method: 'GET',
+        headers: {
+          "Content-Type": "application/json",
+          'Authorization': 'Bearer ' + token
+        }
+      })
+      if (!resp.ok) throw Error("Hubo un problema en la solicitud de inicio de sesión.")
+
+      else if (resp.status === 403) {
+        throw Error("Token faltante o no válido");
+      }
+      else if (resp.status === 200) {
+        const data = await resp.json();
+        setModulosArreglo(data)
+        if (facultadSeleccionadaFiltro === "Sin filtro") {
+          setModulosMostrar(data)
+
+        }
+        if (carreraSeleccionadaFiltro === "Sin filtro" && facultadSeleccionadaFiltro === "Sin filtro") {
+          setModulosMostrar(data)
+
+        }
+        else if (carreraSeleccionadaFiltro === "Sin filtro" && facultadSeleccionadaFiltro !== "Sin filtro") {
+          setModulosMostrar(data.filter((e) => e.facultad === facultadSeleccionadaFiltro))
+
+        }
+        else {
+          setModulosMostrar(data.filter((e) => e.facultad === facultadSeleccionadaFiltro && e.carrera === carreraSeleccionadaFiltro))
+        }
+      }
+      else {
+        throw Error('Error desconocido');
+      }
+
+
 
     }
-    if (carreraSeleccionadaFiltro === "Sin filtro" && facultadSeleccionadaFiltro === "Sin filtro") {
-      setModulosMostrar(data)
+    catch {
+      setModulosMostrar(null)
 
     }
-    else if (carreraSeleccionadaFiltro === "Sin filtro" && facultadSeleccionadaFiltro !== "Sin filtro") {
-      setModulosMostrar(data.filter((e) => e.facultad === facultadSeleccionadaFiltro))
 
-    }
-    else {
-      setModulosMostrar(data.filter((e) => e.facultad === facultadSeleccionadaFiltro && e.carrera === carreraSeleccionadaFiltro))
-    }
+
   };
 
   const crearNuevoModulo = async () => {
@@ -196,17 +224,30 @@ export default function Modulos() {
       eventos: [],
       carrera: carreraSeleccionadaModal
     }
-    const res = await fetch(`${API}/modulos`, {
-      method: "POST",
+    const token = window.localStorage.getItem('token');
+
+    const resp = await fetch(`${API}/modulos`, {
+      method: 'POST',
       headers: {
         "Content-Type": "application/json",
+        'Authorization': 'Bearer ' + token
       },
       body: JSON.stringify(nuevoModulo),
-    });
-    const data = await res.json();
-    getModulos()
-    setLoadingCrearModulo(false)
-    setOpenCrearModulo(false)
+    })
+    if (!resp.ok) throw Error("Hubo un problema en la solicitud de inicio de sesión.")
+
+    else if (resp.status === 403) {
+      throw Error("Token faltante o no válido");
+    }
+    else if (resp.status === 200) {
+      const data = await resp.json();
+      getModulos()
+      setLoadingCrearModulo(false)
+      setOpenCrearModulo(false)
+    }
+    else {
+      throw Error('Error desconocido');
+    }
 
 
   };
@@ -326,19 +367,27 @@ export default function Modulos() {
         <Grid container spacing={2} xs={12}>
 
 
-          {modulosMostrar && modulosMostrar.length >= 1 ? (
-            modulosMostrar.map((e, index) => {
-              return (<Grid item key={index} xs={6} md={4}>
-                <CardModulos modulo={e} getModulos={getModulos} />
-              </Grid>);
-
-            })) : (
+          {!modulosMostrar ? (
             <Grid item xs={12} md={12}>
-              <LinearProgress />
+              <Typography>Error en el servidor</Typography>
 
             </Grid>
+          ) :
+            (
+              modulosMostrar.length >= 1 ? (
+                modulosMostrar.map((e, index) => {
+                  return (<Grid item key={index} xs={6} md={4}>
+                    <CardModulos modulo={e} getModulos={getModulos} />
+                  </Grid>);
 
-          )
+                })) : (
+                <Grid item xs={12} md={12}>
+                  <LinearProgress />
+
+                </Grid>
+
+              )
+            )
           }
 
         </Grid>

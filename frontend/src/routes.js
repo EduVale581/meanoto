@@ -15,10 +15,12 @@ import Profesores from './pages/Profesores';
 // ----------------------------------------------------------------------
 
 export default function Router() {
+  const token = window.localStorage.getItem("token");
+  console.log(token)
   return useRoutes([
     {
       path: '/dashboard',
-      element: <DashboardLayout />,
+      element: token ? <DashboardLayout /> : <Navigate to="/login" />,
       children: [
         { element: <Navigate to="/dashboard/app" replace /> },
         { path: 'app', element: <DashboardApp /> },
@@ -30,7 +32,7 @@ export default function Router() {
     },
     {
       path: '/',
-      element: <LogoOnlyLayout />,
+      element: !token ? <LogoOnlyLayout /> : <Navigate to="/app/dashboard" />,
       children: [
         { path: 'login', element: <Login /> },
         { path: 'register', element: <Register /> },

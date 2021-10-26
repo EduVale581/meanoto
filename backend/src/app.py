@@ -3,6 +3,7 @@ from flask_cors import CORS
 from bson.json_util import ObjectId
 import json
 import db
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, JWTManager
 
 class MyEncoder(json.JSONEncoder):
 
@@ -12,25 +13,48 @@ class MyEncoder(json.JSONEncoder):
         return super(MyEncoder, self).default(obj)
 
 app = Flask(__name__)
+app.config["JWT_SECRET_KEY"] = "super-secret"
 app.json_encoder = MyEncoder
+
+jwt = JWTManager(app)
 
 CORS(app)
 
 # Routes
+
+# Crea una ruta para autenticar a los usuarios y devolver el token JWT.
+# La función create_access_token() se utiliza para generar el JWT.
+@app.route("/token", methods=["POST"])
+def create_token():
+    rut = request.json['rut']
+    password = request.json['password']
+    # Query your database for username and password
+    user = db.db.usuarios.find_one({"rut": rut, "contrasena": password })
+    if user is None:
+        # the user was not found on the database
+        return jsonify({'message': 'Nombre de usuario o contraseña incorrectos'}), 401
+    
+    # create a new token with the user id inside
+    access_token = create_access_token(identity=user["_id"])
+    return jsonify({ "token": access_token, "user_id": user })
+
+
 
 @app.route('/')
 def flask_mongodb_atlas():
     return "flask mongodb atlas!"
 
 @app.route('/modulos/<id>', methods=['PUT'])
+@jwt_required()
 def actualizarNumAlumnos(id):
     db.db.modulos.update_one({'_id': ObjectId(id)}, {"$set": {
         'nro_alumnos': request.json['nro_alumnos'],
         'profesor': request.json['profesor']
     }})
-    return jsonify({'message': 'Módulo Actualizado'})
+    return jsonify({'message': 'Módulo Actualizado'}), 200
 
 @app.route('/modulos', methods=['POST'])
+@jwt_required()
 def agregarNuevoModulo():
     moduloExistente = db.db.modulos.find_one({"facultad": request.json['facultad'], "carrera": request.json['carrera'] })
     print(moduloExistente)
@@ -44,19 +68,21 @@ def agregarNuevoModulo():
             'carrera':request.json['carrera'],
         })
         print(id)
-        return jsonify({'message': 'Módulo ingresado con éxito'})
+        return jsonify({'message': 'Módulo ingresado con éxito'}), 200
     else:
-        return jsonify({'message': 'El módulo ingresado, ya se encuentra en nuestro registros'})
+        return jsonify({'message': 'El módulo ingresado, ya se encuentra en nuestro registros'}), 200
 
 
 @app.route('/modulos/<id>', methods=['DELETE'])
+@jwt_required()
 def eliminarModulo(id):
     db.db.modulos.delete_one({'_id': ObjectId(id)})
-    return jsonify({'message': 'Módulo Eliminado'})
+    return jsonify({'message': 'Módulo Eliminado'}), 200
 
 
 
 @app.route('/modulos', methods=['GET'])
+@jwt_required()
 def getModulos():
     modulos = []
     for doc in db.db.modulos.find():    
@@ -80,9 +106,10 @@ def getModulos():
             'carrera': doc['carrera'],
             'eventos': doc['eventos']
         })
-    return jsonify(modulos)
+    return jsonify(modulos), 200
 
 @app.route('/profesores', methods=['GET'])
+@jwt_required()
 def getProfesores():
     profesores = []
     for doc in db.db.profesores.find():    
@@ -98,7 +125,7 @@ def getProfesores():
             'modulos': doc['modulos'],
             'eventos': doc['eventos'],
         })
-    return jsonify(profesores)
+    return jsonify(profesores), 200
 
 
 if __name__ == '__main__':

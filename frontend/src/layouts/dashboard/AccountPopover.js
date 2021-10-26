@@ -33,6 +33,12 @@ export default function AccountPopover() {
     setOpen(false);
   };
 
+  const cerrarSesion = () => {
+    window.localStorage.removeItem("token");
+    window.localStorage.removeItem("user");
+    window.location.href = "/login"
+  };
+
   return (
     <>
       <IconButton
@@ -95,7 +101,7 @@ export default function AccountPopover() {
         ))}
 
         <Box sx={{ p: 2, pt: 1.5 }}>
-          <Button fullWidth color="inherit" variant="outlined">
+          <Button fullWidth color="inherit" variant="outlined" onClick={cerrarSesion}>
             Salir
           </Button>
         </Box>

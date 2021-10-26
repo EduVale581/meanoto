@@ -66,18 +66,32 @@ export default function CardModulos({ modulo, getModulos }) {
             nro_alumnos: cantEstudiantes,
             profesor: profesorSeleccionado,
         }
-
-        const res = await fetch(`${API}/modulos/${id}`, {
+        const token = window.localStorage.getItem('token');
+        const resp = await fetch(`${API}/modulos/${id}`, {
             method: "PUT",
             headers: {
                 "Content-Type": "application/json",
+                'Authorization': 'Bearer ' + token
             },
             body: JSON.stringify(editarModulo),
         });
-        const data = await res.json();
-        getModulos();
-        setLoadingEditar(false);
-        setOpenEditarCantidadAlumnos(false)
+
+        if (!resp.ok) throw Error("Hubo un problema en la solicitud de inicio de sesión.")
+
+        else if (resp.status === 403) {
+            throw Error("Token faltante o no válido");
+        }
+        else if (resp.status === 200) {
+            const data = await resp.json();
+            getModulos();
+            setLoadingEditar(false);
+            setOpenEditarCantidadAlumnos(false)
+
+        }
+        else {
+            throw Error('Error desconocido');
+        }
+
     };
 
     const handleChangeCantidadEstudiantes = (event) => {
@@ -85,10 +99,31 @@ export default function CardModulos({ modulo, getModulos }) {
     };
 
     const getProfesores = async () => {
-        const res = await fetch(`${API}/profesores`);
-        const data = await res.json();
+        const token = window.localStorage.getItem('token');
 
-        setProfesores(data)
+        const resp = await fetch(`${API}/profesores`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                'Authorization': 'Bearer ' + token
+            },
+        });
+
+        if (!resp.ok) throw Error("Hubo un problema en la solicitud de inicio de sesión.")
+
+        else if (resp.status === 403) {
+            throw Error("Token faltante o no válido");
+        }
+        else if (resp.status === 200) {
+            const data = await resp.json();
+
+            setProfesores(data)
+
+        }
+        else {
+            throw Error('Error desconocido');
+        }
+
     };
 
     const handleChangeProfesorSeleccionado = (event) => {
@@ -129,15 +164,31 @@ export default function CardModulos({ modulo, getModulos }) {
                                     loading={loadingEliminar}
                                     onClick={async () => {
                                         setLoadingEliminar(true);
-                                        const res = await fetch(`${API}/modulos/${id}`, {
+                                        const token = window.localStorage.getItem('token');
+
+                                        const resp = await fetch(`${API}/modulos/${id}`, {
                                             method: "DELETE",
                                             headers: {
                                                 "Content-Type": "application/json",
+                                                'Authorization': 'Bearer ' + token
                                             },
                                         });
-                                        const data = await res.json();
-                                        getModulos();
-                                        setLoadingEliminar(false);
+
+                                        if (!resp.ok) throw Error("Hubo un problema en la solicitud de inicio de sesión.")
+
+                                        else if (resp.status === 403) {
+                                            throw Error("Token faltante o no válido");
+                                        }
+                                        else if (resp.status === 200) {
+                                            const data = await resp.json();
+                                            getModulos();
+                                            setLoadingEliminar(false);
+
+                                        }
+                                        else {
+                                            throw Error('Error desconocido');
+                                        }
+
                                     }}
                                     color="error"
                                     startIcon={<DeleteIcon fontSize="inherit" />}
