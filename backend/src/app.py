@@ -35,8 +35,8 @@ def create_token():
         return jsonify({'message': 'Nombre de usuario o contraseña incorrectos'}), 401
     
     # create a new token with the user id inside
-    access_token = create_access_token(identity=user["_id"])
-    return jsonify({ "token": access_token, "user_id": user })
+    access_token = create_access_token(identity=user['_id'], expires_delta=False)
+    return jsonify({ "token": access_token, "user_id": user['_id'] })
 
 
 
@@ -57,7 +57,6 @@ def actualizarNumAlumnos(id):
 @jwt_required()
 def agregarNuevoModulo():
     moduloExistente = db.db.modulos.find_one({"facultad": request.json['facultad'], "carrera": request.json['carrera'] })
-    print(moduloExistente)
     if moduloExistente is None:
         id = db.db.modulos.insert({
             'nombre': request.json['nombre'],
@@ -67,7 +66,6 @@ def agregarNuevoModulo():
             'eventos':request.json['eventos'],
             'carrera':request.json['carrera'],
         })
-        print(id)
         return jsonify({'message': 'Módulo ingresado con éxito'}), 200
     else:
         return jsonify({'message': 'El módulo ingresado, ya se encuentra en nuestro registros'}), 200
@@ -126,6 +124,15 @@ def getProfesores():
             'eventos': doc['eventos'],
         })
     return jsonify(profesores), 200
+
+@app.route('/usuario', methods=['POST'])
+@jwt_required()
+def getUsuario():
+    usuario = db.db.usuarios.find_one({"_id": ObjectId(request.json['id'])})
+    if usuario is not None:
+        return jsonify(usuario), 200
+    else:
+        return jsonify({'message': 'Ha ocurrido un error al obtener el usuario'}), 401
 
 
 if __name__ == '__main__':

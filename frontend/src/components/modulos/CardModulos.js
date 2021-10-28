@@ -30,11 +30,11 @@ import EditIcon from '@mui/icons-material/Edit';
 import PersonIcon from '@mui/icons-material/Person';
 import AddIcon from '@mui/icons-material/Add';
 import { blue } from '@mui/material/colors';
+import Api from 'src/api/Api';
+import { useUsuario } from 'src/context/usuarioContext';
 
-const API = "http://127.0.0.1:8000";
-
-export default function CardModulos({ modulo, getModulos }) {
-    const user = "Admin";
+export default function CardModulos({ modulo, setModulosArreglo, setModulosMostrar, setModulosServidor, facultadSeleccionadaFiltro, carreraSeleccionadaFiltro }) {
+    const { user, setUser, setCargandoUsuario, cargandoUsuario } = useUsuario();
     const { nombre, profesor, facultad, carrera, nro_alumnos, id, id_Profesor } = modulo;
     const [openCrearModulo, setOpenCrearModulo] = useState(false);
     const [openEditarCantidadAlumnos, setOpenEditarCantidadAlumnos] = useState(false);
@@ -61,37 +61,18 @@ export default function CardModulos({ modulo, getModulos }) {
     };
 
     const guardarCantidadEstudiantes = async () => {
-        setLoadingEditar(true);
-        let editarModulo = {
-            nro_alumnos: cantEstudiantes,
-            profesor: profesorSeleccionado,
+        const dato = Api.guardarCantidadEstudiantes(id, cantEstudiantes, profesorSeleccionado, setLoadingEditar, setOpenEditarCantidadAlumnos, setModulosArreglo, setModulosMostrar, setModulosServidor, facultadSeleccionadaFiltro, carreraSeleccionadaFiltro)
+        if (dato === 403 || dato === 401) {
+            window.localStorage.removeItem("token");
+            window.localStorage.removeItem("user");
+            window.location.href = "/login"
         }
-        const token = window.localStorage.getItem('token');
-        const resp = await fetch(`${API}/modulos/${id}`, {
-            method: "PUT",
-            headers: {
-                "Content-Type": "application/json",
-                'Authorization': 'Bearer ' + token
-            },
-            body: JSON.stringify(editarModulo),
-        });
-
-        if (!resp.ok) throw Error("Hubo un problema en la solicitud de inicio de sesión.")
-
-        else if (resp.status === 403) {
-            throw Error("Token faltante o no válido");
-        }
-        else if (resp.status === 200) {
-            const data = await resp.json();
-            getModulos();
-            setLoadingEditar(false);
-            setOpenEditarCantidadAlumnos(false)
+        else if (dato === -1) {
 
         }
         else {
-            throw Error('Error desconocido');
-        }
 
+        }
     };
 
     const handleChangeCantidadEstudiantes = (event) => {
@@ -99,31 +80,34 @@ export default function CardModulos({ modulo, getModulos }) {
     };
 
     const getProfesores = async () => {
-        const token = window.localStorage.getItem('token');
-
-        const resp = await fetch(`${API}/profesores`, {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-                'Authorization': 'Bearer ' + token
-            },
-        });
-
-        if (!resp.ok) throw Error("Hubo un problema en la solicitud de inicio de sesión.")
-
-        else if (resp.status === 403) {
-            throw Error("Token faltante o no válido");
+        const data = await Api.getProfesores();
+        if (data === 403 || data === 401) {
+            window.localStorage.removeItem("token");
+            window.localStorage.removeItem("user");
+            window.location.href = "/login"
         }
-        else if (resp.status === 200) {
-            const data = await resp.json();
-
-            setProfesores(data)
+        else if (data === -1) {
 
         }
         else {
-            throw Error('Error desconocido');
+            setProfesores(data)
+
         }
 
+    };
+    const eliminarModulo = async () => {
+        const data = Api.eliminarModulo(id, setLoadingEliminar, setModulosArreglo, setModulosMostrar, setModulosServidor, facultadSeleccionadaFiltro, carreraSeleccionadaFiltro)
+        if (data === 403 || data === 401) {
+            window.localStorage.removeItem("token");
+            window.localStorage.removeItem("user");
+            window.location.href = "/login"
+        }
+        else if (data === -1) {
+
+        }
+        else {
+
+        }
     };
 
     const handleChangeProfesorSeleccionado = (event) => {
@@ -134,13 +118,50 @@ export default function CardModulos({ modulo, getModulos }) {
         getProfesores();
 
     }, []);
+
+
+    async function obtenerUsuarioNull() {
+        if (!user) {
+            const token = window.localStorage.getItem("token");
+            const idUsuario = window.localStorage.getItem("user");
+            const data = await Api.cargarUsuario(token, idUsuario);
+
+
+            if (data === 401) {
+                window.localStorage.removeItem("token");
+                window.localStorage.removeItem("user");
+                window.location.href = "/login"
+            }
+            else if (data === 403) {
+                window.localStorage.removeItem("token");
+                window.localStorage.removeItem("user");
+                window.location.href = "/login"
+
+            }
+            else if (data === -1) {
+                window.localStorage.removeItem("token");
+                window.localStorage.removeItem("user");
+                window.location.href = "/login"
+
+            }
+            else {
+                setUser(data);
+                setCargandoUsuario(false);
+            }
+
+        }
+
+
+    }
+
+    obtenerUsuarioNull()
     return (
         <Card>
 
             <Box>
                 <Grid container xs={12} spacing={2}>
                     <Grid item xs={10} md={10}>
-                        {user !== "Admin" && user !== "Profesor" ? (
+                        {!cargandoUsuario && user && user.tipo_usuario !== "ADMIN" && user.tipo_usuario !== "PROFESOR" && user.tipo_usuario !== "OPERATIVO" ? (
                             <div>
                             </div>
                         ) : (
@@ -158,38 +179,11 @@ export default function CardModulos({ modulo, getModulos }) {
 
                     </Grid>
                     <Grid item xs={2} md={2} >
-                        {user === "Admin" && (
+                        {!cargandoUsuario && user && user.tipo_usuario === "ADMIN" && (
                             <div>
                                 <LoadingButton
                                     loading={loadingEliminar}
-                                    onClick={async () => {
-                                        setLoadingEliminar(true);
-                                        const token = window.localStorage.getItem('token');
-
-                                        const resp = await fetch(`${API}/modulos/${id}`, {
-                                            method: "DELETE",
-                                            headers: {
-                                                "Content-Type": "application/json",
-                                                'Authorization': 'Bearer ' + token
-                                            },
-                                        });
-
-                                        if (!resp.ok) throw Error("Hubo un problema en la solicitud de inicio de sesión.")
-
-                                        else if (resp.status === 403) {
-                                            throw Error("Token faltante o no válido");
-                                        }
-                                        else if (resp.status === 200) {
-                                            const data = await resp.json();
-                                            getModulos();
-                                            setLoadingEliminar(false);
-
-                                        }
-                                        else {
-                                            throw Error('Error desconocido');
-                                        }
-
-                                    }}
+                                    onClick={eliminarModulo}
                                     color="error"
                                     startIcon={<DeleteIcon fontSize="inherit" />}
                                 />
@@ -261,7 +255,7 @@ export default function CardModulos({ modulo, getModulos }) {
                         <Typography variant="h5" noWrap style={{ paddingLeft: 10 }}>
                             Estudiantes
                         </Typography>
-                        {user === "Admin" && (
+                        {!cargandoUsuario && user && user.tipo_usuario === "ADMIN" && (
                             <ListItem autoFocus button>
                                 <ListItemAvatar>
                                     <Avatar>
@@ -289,7 +283,7 @@ export default function CardModulos({ modulo, getModulos }) {
                                             </Avatar>
                                         </ListItemAvatar>
                                         <ListItemText primary={email} />
-                                        {user === "Admin" && (
+                                        {!cargandoUsuario && user && user.tipo_usuario === "ADMIN" && (
                                             <IconButton
                                                 onClick={() => { console.log(id) }}
                                                 aria-label="delete"
@@ -344,7 +338,7 @@ export default function CardModulos({ modulo, getModulos }) {
                                 />
                             </Grid>
 
-                            {user === "Admin" && (
+                            {!cargandoUsuario && user && user.tipo_usuario === "ADMIN" && (
                                 <Grid item xs={12} style={{ marginLeft: 10, marginTop: 10 }}>
 
                                     <FormControl fullWidth>

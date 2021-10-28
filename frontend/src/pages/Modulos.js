@@ -24,17 +24,20 @@ import LoadingButton from '@mui/lab/LoadingButton';
 import { styled } from '@mui/material/styles';
 // components
 import Page from '../components/Page';
-import CardModulos from 'src/components/modulos/CardModulos';
+import CardModulos from '../components/modulos/CardModulos';
 import React, { useState, useEffect } from 'react';
+import { useUsuario } from '../context/usuarioContext';
+import Api from '../api/Api';
 
 const Input = styled('input')({
   display: 'none',
 });
 
-const API = "http://127.0.0.1:8000";
 export default function Modulos() {
+  const { user, setUser, setCargandoUsuario, cargandoUsuario } = useUsuario();
 
-  const user = "ADMIN";
+
+
 
   const [openCrearModulo, setOpenCrearModulo] = useState(false);
   const [carreraSeleccionadaFiltro, setCarreraSeleccionadaFiltro] = useState("Sin filtro");
@@ -42,6 +45,7 @@ export default function Modulos() {
   const [carrerasFiltradas, setCarrerasFiltradas] = useState([]);
 
   const [loadingCrearModulo, setLoadingCrearModulo] = useState(false);
+  const [modulosServidor, setModulosServidor] = useState(false);
 
 
   const [carreraSeleccionadaModal, setCarreraSeleccionadaModal] = useState("");
@@ -162,100 +166,92 @@ export default function Modulos() {
   const handleOpenModulo = () => setOpenCrearModulo(true);
   const handleCloseModulo = () => setOpenCrearModulo(false);
 
-
-
-  const getModulos = async () => {
-    try {
-      const token = window.localStorage.getItem('token');
-
-      const resp = await fetch(`${API}/modulos`, {
-        method: 'GET',
-        headers: {
-          "Content-Type": "application/json",
-          'Authorization': 'Bearer ' + token
-        }
-      })
-      if (!resp.ok) throw Error("Hubo un problema en la solicitud de inicio de sesión.")
-
-      else if (resp.status === 403) {
-        throw Error("Token faltante o no válido");
-      }
-      else if (resp.status === 200) {
-        const data = await resp.json();
-        setModulosArreglo(data)
-        if (facultadSeleccionadaFiltro === "Sin filtro") {
-          setModulosMostrar(data)
-
-        }
-        if (carreraSeleccionadaFiltro === "Sin filtro" && facultadSeleccionadaFiltro === "Sin filtro") {
-          setModulosMostrar(data)
-
-        }
-        else if (carreraSeleccionadaFiltro === "Sin filtro" && facultadSeleccionadaFiltro !== "Sin filtro") {
-          setModulosMostrar(data.filter((e) => e.facultad === facultadSeleccionadaFiltro))
-
-        }
-        else {
-          setModulosMostrar(data.filter((e) => e.facultad === facultadSeleccionadaFiltro && e.carrera === carreraSeleccionadaFiltro))
-        }
-      }
-      else {
-        throw Error('Error desconocido');
-      }
-
-
-
+  const crearNuevoModulo = () => {
+    const data = Api.crearNuevoModulo(nombre, facultadSeleccionadaModal, nro_alumnos, carreraSeleccionadaModal, setModulosArreglo, setModulosMostrar, setModulosServidor, facultadSeleccionadaFiltro, carreraSeleccionadaFiltro, setLoadingCrearModulo, setOpenCrearModulo)
+    if (data === 403 || data === 401) {
+      window.localStorage.removeItem("token");
+      window.localStorage.removeItem("user");
+      window.location.href = "/login"
     }
-    catch {
-      setModulosMostrar(null)
+    else if (data === -1) {
 
-    }
-
-
-  };
-
-  const crearNuevoModulo = async () => {
-    setLoadingCrearModulo(true)
-    let nuevoModulo = {
-      nombre: nombre,
-      profesor: "",
-      facultad: facultadSeleccionadaModal,
-      nro_alumnos: nro_alumnos,
-      eventos: [],
-      carrera: carreraSeleccionadaModal
-    }
-    const token = window.localStorage.getItem('token');
-
-    const resp = await fetch(`${API}/modulos`, {
-      method: 'POST',
-      headers: {
-        "Content-Type": "application/json",
-        'Authorization': 'Bearer ' + token
-      },
-      body: JSON.stringify(nuevoModulo),
-    })
-    if (!resp.ok) throw Error("Hubo un problema en la solicitud de inicio de sesión.")
-
-    else if (resp.status === 403) {
-      throw Error("Token faltante o no válido");
-    }
-    else if (resp.status === 200) {
-      const data = await resp.json();
-      getModulos()
-      setLoadingCrearModulo(false)
-      setOpenCrearModulo(false)
     }
     else {
-      throw Error('Error desconocido');
+
+    }
+  }
+
+
+
+  async function obtenerUsuarioNull() {
+    if (!user) {
+      const token = window.localStorage.getItem("token");
+      const idUsuario = window.localStorage.getItem("user");
+      const data = await Api.cargarUsuario(token, idUsuario);
+
+
+      if (data === 401) {
+        window.localStorage.removeItem("token");
+        window.localStorage.removeItem("user");
+        window.location.href = "/login"
+      }
+      else if (data === 403) {
+        window.localStorage.removeItem("token");
+        window.localStorage.removeItem("user");
+        window.location.href = "/login"
+
+      }
+      else if (data === -1) {
+        window.localStorage.removeItem("token");
+        window.localStorage.removeItem("user");
+        window.location.href = "/login"
+
+      }
+      else {
+        setUser(data);
+        setCargandoUsuario(false);
+      }
+
     }
 
 
-  };
+  }
+
+  obtenerUsuarioNull()
+
+
+
+
+
 
 
   useEffect(() => {
-    getModulos();
+    async function cargarModulos() {
+      const data = Api.getModulos(setModulosArreglo, setModulosMostrar, setModulosServidor, facultadSeleccionadaFiltro, carreraSeleccionadaFiltro)
+      if (data === 401) {
+        window.localStorage.removeItem("token");
+        window.localStorage.removeItem("user");
+        window.location.href = "/login"
+      }
+      else if (data === 403) {
+        window.localStorage.removeItem("token");
+        window.localStorage.removeItem("user");
+        window.location.href = "/login"
+
+      }
+      else if (data === -1) {
+
+      }
+      else {
+      }
+
+
+    }
+    cargarModulos();
+
   }, []);
+
+
 
   const [modulosMostrar, setModulosMostrar] = useState(modulosArreglo);
 
@@ -267,7 +263,7 @@ export default function Modulos() {
           <Typography variant="h4" gutterBottom>
             Módulos
           </Typography>
-          {user === "ADMIN" && (
+          {!cargandoUsuario && user && user.tipo_usuario === "ADMIN" && (
             <Button
               variant="contained"
               onClick={handleOpenModulo}
@@ -280,8 +276,7 @@ export default function Modulos() {
 
         </Stack>
 
-
-        {user === "ADMIN" && (
+        {!cargandoUsuario && user && user.tipo_usuario === "ADMIN" && (
           <Grid container spacing={2} style={{ marginBottom: 10 }}>
             <Grid item xs={12} style={{ marginBottom: 10 }}>
               <Paper elevation={3} >
@@ -310,7 +305,7 @@ export default function Modulos() {
           </Grid>
         )}
 
-        {user === "ADMIN" && (
+        {!cargandoUsuario && user && user.tipo_usuario === "ADMIN" && (
           <Grid container spacing={2} style={{ marginBottom: 10 }}>
             <Grid item xs={12}>
               <Paper elevation={3}>
@@ -367,24 +362,31 @@ export default function Modulos() {
         <Grid container spacing={2} xs={12}>
 
 
-          {!modulosMostrar ? (
+          {modulosServidor ? (
             <Grid item xs={12} md={12}>
               <Typography>Error en el servidor</Typography>
 
             </Grid>
           ) :
             (
-              modulosMostrar.length >= 1 ? (
+              modulosMostrar && modulosMostrar.length >= 1 ? (
                 modulosMostrar.map((e, index) => {
                   return (<Grid item key={index} xs={6} md={4}>
-                    <CardModulos modulo={e} getModulos={getModulos} />
+                    <CardModulos modulo={e} setModulosArreglo={setModulosArreglo} setModulosMostrar={setModulosMostrar} setModulosServidor={setModulosServidor} facultadSeleccionadaFiltro={facultadSeleccionadaFiltro} carreraSeleccionadaFiltro={carreraSeleccionadaFiltro} />
                   </Grid>);
 
                 })) : (
-                <Grid item xs={12} md={12}>
-                  <LinearProgress />
+                modulosMostrar && modulosMostrar.length <= 0 ? (
+                  <Grid item xs={12} md={12}>
+                    <Typography>Sin datos que mostrar</Typography>
 
-                </Grid>
+                  </Grid>
+                ) : (
+                  <Grid item xs={12} md={12}>
+                    <LinearProgress />
+
+                  </Grid>
+                )
 
               )
             )
