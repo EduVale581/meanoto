@@ -14,9 +14,10 @@ import {
 } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
 import { validateRut } from '@fdograph/rut-utilities';
+import Api from 'src/api/Api';
 
 // ----------------------------------------------------------------------
-const API = "http://127.0.0.1:8000";
+
 export default function LoginForm() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
@@ -50,23 +51,28 @@ export default function LoginForm() {
         return errors;
       }}
       onSubmit={async (values) => {
-        const resp = await fetch(`${API}/token`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ rut: values.rut, password: values.password })
-        })
-        if (!resp.ok) throw Error("Hubo un problema en la solicitud de inicio de sesión.")
 
-        if (resp.status === 401) {
-          throw ("Credenciales no válidas")
+        const data = await Api.obtenerToken(values.rut, values.password)
+        if (data === -1) {
+
         }
-        else if (resp.status === 400) {
-          throw ("Formato de correo electrónico o contraseña no válidos")
+        else if (data === 401) {
+
         }
-        const data = await resp.json()
-        window.localStorage.setItem("token", data.token)
-        window.localStorage.setItem("user", JSON.stringify(data.user_id))
-        navigate('/dashboard', { replace: true });
+        else if (data === 400) {
+
+        }
+        else if (!data) {
+
+        }
+        else {
+          window.localStorage.setItem("token", data.token)
+          window.localStorage.setItem("user", data.user_id)
+          navigate('/dashboard', { replace: true });
+
+        }
+
+
       }}
     >
       {(props) => {

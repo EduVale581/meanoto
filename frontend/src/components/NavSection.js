@@ -7,6 +7,8 @@ import arrowIosDownwardFill from '@iconify/icons-eva/arrow-ios-downward-fill';
 // material
 import { alpha, useTheme, styled } from '@mui/material/styles';
 import { Box, List, Collapse, ListItemText, ListItemIcon, ListItemButton } from '@mui/material';
+import { useUsuario } from 'src/context/usuarioContext';
+import Api from 'src/api/Api';
 
 // ----------------------------------------------------------------------
 
@@ -157,12 +159,55 @@ export default function NavSection({ navConfig, ...other }) {
   const { pathname } = useLocation();
   const match = (path) => (path ? !!matchPath({ path, end: false }, pathname) : false);
 
+  const { user, setUser, setCargandoUsuario, cargandoUsuario } = useUsuario();
+
+  async function obtenerUsuarioNull() {
+    if (!user) {
+      const token = window.localStorage.getItem("token");
+      const idUsuario = window.localStorage.getItem("user");
+      const data = await Api.cargarUsuario(token, idUsuario);
+
+
+      if (data === 401) {
+        window.localStorage.removeItem("token");
+        window.localStorage.removeItem("user");
+        window.location.href = "/login"
+      }
+      else if (data === 403) {
+        window.localStorage.removeItem("token");
+        window.localStorage.removeItem("user");
+        window.location.href = "/login"
+
+      }
+      else if (data === -1) {
+        window.localStorage.removeItem("token");
+        window.localStorage.removeItem("user");
+        window.location.href = "/login"
+
+      }
+      else {
+        setUser(data);
+        setCargandoUsuario(false);
+      }
+
+    }
+
+
+  }
+
+  obtenerUsuarioNull()
   return (
     <Box {...other}>
       <List disablePadding>
-        {navConfig.map((item) => (
-          <NavItem key={item.title} item={item} active={match} />
-        ))}
+        {navConfig.map((item) => {
+          if (!cargandoUsuario && user && item.usuarios && item.usuarios.includes(user.tipo_usuario)) {
+            return <NavItem key={item.title} item={item} active={match} />
+          }
+          else {
+
+          }
+
+        })}
       </List>
     </Box>
   );

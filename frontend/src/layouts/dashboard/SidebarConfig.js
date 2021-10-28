@@ -10,27 +10,32 @@ const sidebarConfig = [
   {
     title: 'Inicio',
     path: '/dashboard/app',
-    icon: <HomeIcon />
+    icon: <HomeIcon />,
+    usuarios: ["ADMIN", "OPERATIVO", "PROFESOR", "ESTUDIANTE"]
   },
   {
     title: 'eventos',
     path: '/dashboard/evento',
-    icon: <EventIcon />
+    icon: <EventIcon />,
+    usuarios: ["ADMIN", "OPERATIVO", "PROFESOR", "ESTUDIANTE"]
   },
   {
     title: 'salas',
     path: '/dashboard/sala',
-    icon: <LocationCityIcon />
+    icon: <LocationCityIcon />,
+    usuarios: ["ADMIN", "OPERATIVO"]
   },
   {
     title: 'modulos',
     path: '/dashboard/modulo',
-    icon: <ClassIcon/>
+    icon: <ClassIcon />,
+    usuarios: ["ADMIN", "OPERATIVO", "PROFESOR", "ESTUDIANTE"]
   },
   {
     title: 'profesores',
     path: '/dashboard/profesores',
-    icon: <GroupIcon/>
+    icon: <GroupIcon />,
+    usuarios: ["ADMIN", "OPERATIVO"]
   },
 
 ];

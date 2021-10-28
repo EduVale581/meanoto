@@ -11,16 +11,16 @@ import Eventos from './pages/Eventos';
 import Salas from './pages/Salas';
 import Modulos from './pages/Modulos';
 import Profesores from './pages/Profesores';
+import { UsuarioProvider } from './context/usuarioContext';
 
 // ----------------------------------------------------------------------
 
 export default function Router() {
   const token = window.localStorage.getItem("token");
-  console.log(token)
   return useRoutes([
     {
       path: '/dashboard',
-      element: token ? <DashboardLayout /> : <Navigate to="/login" />,
+      element: token ? <UsuarioProvider><DashboardLayout /></UsuarioProvider> : <Navigate to="/login" />,
       children: [
         { element: <Navigate to="/dashboard/app" replace /> },
         { path: 'app', element: <DashboardApp /> },
