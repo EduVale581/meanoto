@@ -1,3 +1,7 @@
+import * as Dropbox from "dropbox";
+const ACCESS_TOKEN =
+    "tqNg1q6lWygAAAAAAAAAARN-TPPDgpDCV18QtmdhiG_61Xk3zZFQwFPvKFjv5FdU";
+const dbx = new Dropbox.Dropbox({ accessToken: ACCESS_TOKEN });
 const API = "http://127.0.0.1:8000";
 
 async function cargarUsuario(token, idUsuario) {
@@ -26,9 +30,13 @@ async function cargarUsuario(token, idUsuario) {
                 return 401;
 
             }
+            else if (resp.status === 300) {
+                return 300;
+
+            }
             else if (resp.status === 200) {
                 const data = await resp.json();
-                return data
+                return data;
 
             }
             else {
@@ -45,6 +53,46 @@ async function cargarUsuario(token, idUsuario) {
     }
     else {
         return -1;
+    }
+}
+async function registroEstudiante(bodyFetch) {
+    try {
+        const resp = await fetch(`${API}/registro`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(bodyFetch),
+        });
+
+
+
+        if (!resp.ok) return -1;
+
+        else if (resp.status === 403) {
+            return 403;
+        }
+        else if (resp.status === 401) {
+            return 401;
+
+        }
+        else if (resp.status === 300) {
+            return 300;
+
+        }
+        else if (resp.status === 200) {
+            const data = await resp.json();
+            return data;
+
+        }
+        else {
+            return -1;
+        }
+
+    }
+    catch {
+        return -1;
+
     }
 }
 async function obtenerToken(rut, password) {
@@ -312,6 +360,7 @@ export default {
     guardarCantidadEstudiantes,
     getProfesores,
     eliminarModulo,
-    eliminarModulo,
+    registroEstudiante,
+    dbx,
     API
 };

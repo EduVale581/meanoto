@@ -4,6 +4,7 @@ from bson.json_util import ObjectId
 import json
 import db
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, JWTManager
+from flask_mail import Mail,  Message
 
 class MyEncoder(json.JSONEncoder):
 
@@ -14,9 +15,15 @@ class MyEncoder(json.JSONEncoder):
 
 app = Flask(__name__)
 app.config["JWT_SECRET_KEY"] = "super-secret"
+app.config["MAIL_SERVER"] = 'smtp.gmail.com'
+app.config["MAIL_PORT"] = 587
+app.config["MAIL_USE_TLS"] = True
+app.config["MAIL_USERNAME"] = 'meanoto2021@gmail.com'
+app.config["MAIL_PASSWORD"] = 'meanoto123'
 app.json_encoder = MyEncoder
 
 jwt = JWTManager(app)
+mail = Mail(app)
 
 CORS(app)
 
@@ -36,7 +43,7 @@ def create_token():
     
     # create a new token with the user id inside
     access_token = create_access_token(identity=user['_id'], expires_delta=False)
-    return jsonify({ "token": access_token, "user_id": user['_id'] })
+    return jsonify({ "token": access_token, "user_id": user['_id'] }),200
 
 
 
@@ -130,10 +137,52 @@ def getProfesores():
 def getUsuario():
     usuario = db.db.usuarios.find_one({"_id": ObjectId(request.json['id'])})
     if usuario is not None:
-        return jsonify(usuario), 200
+        if usuario['tipo_usuario']=="ESTUDIANTE" and usuario['validado']:
+            return jsonify(usuario), 200
+        else:
+            return jsonify(usuario), 200
     else:
         return jsonify({'message': 'Ha ocurrido un error al obtener el usuario'}), 401
 
+
+@app.route('/registro', methods=['POST'])
+def iniciarRegistro():
+    usuario = db.db.usuarios.find_one({"rut": request.json['rut']})
+    estudiante = db.db.estudiantes.find_one({"rut": request.json['rut']})
+    if usuario is not None:
+        return jsonify({'message': 'Usuario ya existe'}), 300
+    elif estudiante is not None:
+        return jsonify({'message': 'Usuario ya existe'}), 300
+    else:
+        id = db.db.estudiantes.insert({
+            'nombre': request.json['nombre'],
+            'apellido': request.json['apellido'],
+            'carrera': request.json['carrera'],
+            'contrasena':request.json['contrasena'],
+            'correo':request.json['correo'],
+            'facultad':request.json['facultad'],
+            'matricula':request.json['matricula'],
+            'rut':request.json['rut'],
+            'modulos':request.json['modulos'],
+            'url_doc_alumno_reg':request.json['url_doc_alumno_reg'],
+            'validado':request.json['validado'],
+            'eventos':request.json['eventos'],
+        })
+        id2 = db.db.usuarios.insert({
+            'contrasena': request.json['contrasena'],
+            'correo': request.json['correo'],
+            'rut': request.json['rut'],
+            'tipo_usuario':request.json['tipo_usuario'],
+            'validado':request.json['validado'],
+            'refId':ObjectId(id),
+            })
+        msg = mail.send_message(
+            'Bienvenid@',
+            sender='meanoto2021@gmail.com',
+            recipients=[request.json['correo']],
+            body="Cuenta creada, Falta verificar datos."
+        )
+        return jsonify({'message': 'Estudiante ingresado con éxito'}), 200
 
 if __name__ == '__main__':
     app.run(port=8000, debug=True)

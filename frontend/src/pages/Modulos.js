@@ -356,10 +356,7 @@ export default function Modulos() {
           </Grid>
         )}
 
-
-
-
-        <Grid container spacing={2} xs={12}>
+        <Grid container spacing={2}>
 
 
           {modulosServidor ? (

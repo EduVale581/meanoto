@@ -44,7 +44,7 @@ export default function Login() {
       <AuthLayout>
         ¿No tienes una cuenta? &nbsp;
         <Link underline="none" variant="subtitle2" component={RouterLink} to="/register">
-          Empecemos
+          Empecemos (Estudiantes)
         </Link>
       </AuthLayout>
 

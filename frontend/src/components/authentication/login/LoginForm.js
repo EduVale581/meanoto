@@ -4,6 +4,7 @@ import { Form, Formik } from 'formik';
 import { Icon } from '@iconify/react';
 import eyeFill from '@iconify/icons-eva/eye-fill';
 import eyeOffFill from '@iconify/icons-eva/eye-off-fill';
+import md5 from 'js-md5';
 // material
 import {
   Link,
@@ -51,8 +52,9 @@ export default function LoginForm() {
         return errors;
       }}
       onSubmit={async (values) => {
+        const contrasena = md5(values.password)
 
-        const data = await Api.obtenerToken(values.rut, values.password)
+        const data = await Api.obtenerToken(values.rut, contrasena)
         if (data === -1) {
 
         }
@@ -60,6 +62,10 @@ export default function LoginForm() {
 
         }
         else if (data === 400) {
+
+        }
+        else if (data === 300) {
+          /*usuario no validado*/
 
         }
         else if (!data) {
