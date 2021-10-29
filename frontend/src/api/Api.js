@@ -55,6 +55,50 @@ async function cargarUsuario(token, idUsuario) {
         return -1;
     }
 }
+
+async function verificarTexto(link) {
+
+
+
+    try {
+        const resp = await fetch(`${API}/obtenertexto`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ link: link }),
+        });
+
+
+
+        if (!resp.ok) return -1;
+
+        else if (resp.status === 403) {
+            return 403;
+        }
+        else if (resp.status === 401) {
+            return 401;
+
+        }
+        else if (resp.status === 300) {
+            return 300;
+
+        }
+        else if (resp.status === 200) {
+            const data = await resp.json();
+            return data;
+
+        }
+        else {
+            return -1;
+        }
+
+    }
+    catch {
+        return -1;
+
+    }
+}
 async function registroEstudiante(bodyFetch) {
     try {
         const resp = await fetch(`${API}/registro`, {
@@ -361,6 +405,7 @@ export default {
     getProfesores,
     eliminarModulo,
     registroEstudiante,
+    verificarTexto,
     dbx,
     API
 };

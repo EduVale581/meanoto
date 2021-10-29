@@ -178,6 +178,7 @@ export default function RegisterForm() {
       }}
       onSubmit={async (values) => {
 
+
         const contrasenaEncriptada = md5(values.password);
 
         let linkArchivo = await uploadFile(values.numMatricula);
@@ -193,7 +194,6 @@ export default function RegisterForm() {
           rut: values.rut,
           modulos: [],
           url_doc_alumno_reg: linkArchivo,
-          validado: false,
           eventos: [],
           tipo_usuario: "ESTUDIANTE"
 

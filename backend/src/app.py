@@ -6,6 +6,18 @@ import db
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, JWTManager
 from flask_mail import Mail,  Message
 
+from io import StringIO
+
+import dropbox
+
+from pdfminer.converter import TextConverter
+from pdfminer.layout import LAParams
+from pdfminer.pdfdocument import PDFDocument
+from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
+from pdfminer.pdfpage import PDFPage
+from pdfminer.pdfparser import PDFParser
+import requests
+
 class MyEncoder(json.JSONEncoder):
 
     def default(self, obj):
@@ -24,8 +36,29 @@ app.json_encoder = MyEncoder
 
 jwt = JWTManager(app)
 mail = Mail(app)
-
+dbx = dropbox.Dropbox("tqNg1q6lWygAAAAAAAAAARN-TPPDgpDCV18QtmdhiG_61Xk3zZFQwFPvKFjv5FdU")
 CORS(app)
+
+
+def obtenerTextoPDF(numMatricula):
+    dbx.files_download_to_file("CertificadosAlumnoRegular/"+numMatricula+".pdf", "/CertificadosAlumnoRegular/"+numMatricula+".pdf")
+    output_string = StringIO()
+    with open("CertificadosAlumnoRegular/"+numMatricula+".pdf", 'rb') as in_file:
+        parser = PDFParser(in_file)
+        doc = PDFDocument(parser)
+        rsrcmgr = PDFResourceManager()
+        device = TextConverter(rsrcmgr, output_string, laparams=LAParams())
+        interpreter = PDFPageInterpreter(rsrcmgr, device)
+        for page in PDFPage.create_pages(doc):
+            interpreter.process_page(page)
+        
+    
+    textoPdf = output_string.getvalue()
+
+    if numMatricula in textoPdf:
+        return True
+    else:
+        return False
 
 # Routes
 
@@ -154,6 +187,9 @@ def iniciarRegistro():
     elif estudiante is not None:
         return jsonify({'message': 'Usuario ya existe'}), 300
     else:
+        if request.json['url_doc_alumno_reg'] != "" or request.json['url_doc_alumno_reg'] != " ":
+            validado = obtenerTextoPDF(request.json['matricula'])
+
         id = db.db.estudiantes.insert({
             'nombre': request.json['nombre'],
             'apellido': request.json['apellido'],
@@ -165,7 +201,7 @@ def iniciarRegistro():
             'rut':request.json['rut'],
             'modulos':request.json['modulos'],
             'url_doc_alumno_reg':request.json['url_doc_alumno_reg'],
-            'validado':request.json['validado'],
+            'validado':validado,
             'eventos':request.json['eventos'],
         })
         id2 = db.db.usuarios.insert({
@@ -173,7 +209,7 @@ def iniciarRegistro():
             'correo': request.json['correo'],
             'rut': request.json['rut'],
             'tipo_usuario':request.json['tipo_usuario'],
-            'validado':request.json['validado'],
+            'validado':validado,
             'refId':ObjectId(id),
             })
         msg = mail.send_message(
@@ -183,6 +219,8 @@ def iniciarRegistro():
             body="Cuenta creada, Falta verificar datos."
         )
         return jsonify({'message': 'Estudiante ingresado con éxito'}), 200
+
+
 
 if __name__ == '__main__':
     app.run(port=8000, debug=True)
