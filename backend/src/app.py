@@ -212,12 +212,20 @@ def iniciarRegistro():
             'validado':validado,
             'refId':ObjectId(id),
             })
-        msg = mail.send_message(
+        if validado:
+            msg = mail.send_message(
             'Bienvenid@',
             sender='meanoto2021@gmail.com',
             recipients=[request.json['correo']],
-            body="Cuenta creada, Falta verificar datos."
+            body="Cuenta creada, ya puedes ingresar a tu cuenta."
         )
+        else:
+            msg = mail.send_message(
+                'Bienvenid@',
+                sender='meanoto2021@gmail.com',
+                recipients=[request.json['correo']],
+                body="Cuenta creada, Falta verificar datos."
+            )
         return jsonify({'message': 'Estudiante ingresado con éxito'}), 200
 
 
