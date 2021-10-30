@@ -123,9 +123,22 @@ def eliminarModulo(id):
 @jwt_required()
 def getModulos():
     modulos = []
-    for doc in db.db.modulos.find():    
+    for doc in db.db.modulos.find():
+        idModulo =  doc['_id']  
         profesor = db.db.profesores.find_one({"_id": doc['profesor']})
         facultad = db.db.facultades.find_one({"_id": doc['facultad']})
+        estudiantesArreglo = []
+        for doc2 in db.db.estudiantes.find({"modulos": idModulo}):
+            estudiantesArreglo.append({
+                'id': doc2['_id'],
+                'nombre': doc2['nombre'],
+                'apellidos': doc2['apellido'],
+                'modulos': doc2['modulos'],
+                'rut': doc2['rut'],
+                'correo': doc2['correo'],
+                'matricula': doc2['matricula'],
+                'eventos': doc2['eventos'],
+            })
         nombreProfesor = ""
         nombreFacultad = ""
         if profesor is not None:
@@ -134,7 +147,7 @@ def getModulos():
             nombreFacultad = facultad['nombre']
 
         modulos.append({
-            'id': doc['_id'],
+            'id': idModulo,
             'nombre': doc['nombre'],
             'profesor': nombreProfesor,
             'facultad': nombreFacultad,
@@ -142,7 +155,8 @@ def getModulos():
             'id_Facultad': doc['facultad'],
             'nro_alumnos': doc['nro_alumnos'],
             'carrera': doc['carrera'],
-            'eventos': doc['eventos']
+            'eventos': doc['eventos'],
+            'estudiantes': estudiantesArreglo,
         })
     return jsonify(modulos), 200
 

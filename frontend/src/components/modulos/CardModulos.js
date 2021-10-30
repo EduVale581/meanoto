@@ -33,7 +33,7 @@ import { blue } from '@mui/material/colors';
 import Api from 'src/api/Api';
 import { useUsuario } from 'src/context/usuarioContext';
 
-export default function CardModulos({ modulo, setModulosArreglo, setModulosMostrar, setModulosServidor, facultadSeleccionadaFiltro, carreraSeleccionadaFiltro }) {
+export default function CardModulos({ modulo, setModulosArreglo, setModulosMostrar, setModulosServidor, facultadSeleccionadaFiltro, carreraSeleccionadaFiltro, estudiantesEntrada }) {
     const { user, setUser, setCargandoUsuario, cargandoUsuario } = useUsuario();
     const { nombre, profesor, facultad, carrera, nro_alumnos, id, id_Profesor } = modulo;
     const [openCrearModulo, setOpenCrearModulo] = useState(false);
@@ -49,7 +49,7 @@ export default function CardModulos({ modulo, setModulosArreglo, setModulosMostr
 
 
 
-    const [estudiantes, setEstudiantes] = useState(['Macarena De Las Mercedes Parrau Gallardo', 'Jacqueline Farías López', "Luis Alfredo Arce Contreras", "Aladino Segundo Espinoza Saavedra", "Luis Rodríguez Alcina", "Eduardo Javier Aracena Ávalos", "Ramón Velásquez Cayupe", "Ximena Loreto Sánchez Figueroa", "Isabel Margarita Pérez Moore"]);
+    const [estudiantes, setEstudiantes] = useState(estudiantesEntrada);
 
     const handleOpenModulo = () => setOpenCrearModulo(true);
     const handleCloseModulo = () => setOpenCrearModulo(false);
@@ -275,17 +275,17 @@ export default function CardModulos({ modulo, setModulosArreglo, setModulosMostr
                         <Grid container xs={12} spacing={2}>
                             <Grid item xs={12} style={{ marginLeft: 10, marginTop: 10 }}>
 
-                                {estudiantes.map((email, index) => (
+                                {estudiantes && estudiantes.map((estud, index) => (
                                     <ListItem key={index}>
                                         <ListItemAvatar>
                                             <Avatar sx={{ bgcolor: blue[100], color: blue[600] }}>
                                                 <PersonIcon />
                                             </Avatar>
                                         </ListItemAvatar>
-                                        <ListItemText primary={email} />
+                                        <ListItemText primary={estud.nombre + " " + estud.apellidos} />
                                         {!cargandoUsuario && user && user.tipo_usuario === "ADMIN" && (
                                             <IconButton
-                                                onClick={() => { console.log(id) }}
+                                                onClick={() => { console.log(estud.id) }}
                                                 aria-label="delete"
                                                 size="large"
                                                 color="error"

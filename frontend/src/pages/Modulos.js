@@ -368,9 +368,15 @@ export default function Modulos() {
             (
               modulosMostrar && modulosMostrar.length >= 1 ? (
                 modulosMostrar.map((e, index) => {
-                  return (<Grid item key={index} xs={6} md={4}>
-                    <CardModulos modulo={e} setModulosArreglo={setModulosArreglo} setModulosMostrar={setModulosMostrar} setModulosServidor={setModulosServidor} facultadSeleccionadaFiltro={facultadSeleccionadaFiltro} carreraSeleccionadaFiltro={carreraSeleccionadaFiltro} />
-                  </Grid>);
+                  let estudiantesEntrada = [];
+                  if (e.estudiantes) {
+                    estudiantesEntrada = e.estudiantes
+                  }
+                  return (
+                    <Grid item key={index} xs={6} md={4}>
+                      <CardModulos modulo={e} setModulosArreglo={setModulosArreglo} setModulosMostrar={setModulosMostrar} setModulosServidor={setModulosServidor} facultadSeleccionadaFiltro={facultadSeleccionadaFiltro} carreraSeleccionadaFiltro={carreraSeleccionadaFiltro} estudiantesEntrada={estudiantesEntrada} />
+                    </Grid>
+                  );
 
                 })) : (
                 modulosMostrar && modulosMostrar.length <= 0 ? (
