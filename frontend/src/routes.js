@@ -11,14 +11,16 @@ import Eventos from './pages/Eventos';
 import Salas from './pages/Salas';
 import Modulos from './pages/Modulos';
 import Profesores from './pages/Profesores';
+import { UsuarioProvider } from './context/usuarioContext';
 
 // ----------------------------------------------------------------------
 
 export default function Router() {
+  const token = window.localStorage.getItem("token");
   return useRoutes([
     {
       path: '/dashboard',
-      element: <DashboardLayout />,
+      element: token ? <UsuarioProvider><DashboardLayout /></UsuarioProvider> : <Navigate to="/login" />,
       children: [
         { element: <Navigate to="/dashboard/app" replace /> },
         { path: 'app', element: <DashboardApp /> },
@@ -30,7 +32,7 @@ export default function Router() {
     },
     {
       path: '/',
-      element: <LogoOnlyLayout />,
+      element: !token ? <LogoOnlyLayout /> : <Navigate to="/app/dashboard" />,
       children: [
         { path: 'login', element: <Login /> },
         { path: 'register', element: <Register /> },

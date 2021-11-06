@@ -20,27 +20,40 @@ import {
   TextField,
   LinearProgress
 } from '@mui/material';
+import LoadingButton from '@mui/lab/LoadingButton';
 import { styled } from '@mui/material/styles';
 // components
 import Page from '../components/Page';
-import CardModulos from 'src/components/modulos/CardModulos';
+import CardModulos from '../components/modulos/CardModulos';
 import React, { useState, useEffect } from 'react';
+import { useUsuario } from '../context/usuarioContext';
+import Api from '../api/Api';
 
 const Input = styled('input')({
   display: 'none',
 });
 
-const API = "http://127.0.0.1:8000";
 export default function Modulos() {
+  const { user, setUser, setCargandoUsuario, cargandoUsuario } = useUsuario();
 
-  const user = "ADMIN";
+
+
 
   const [openCrearModulo, setOpenCrearModulo] = useState(false);
-  const [carreraSeleccionadaModal, setCarreraSeleccionadaModal] = useState("");
-  const [facultadSeleccionadaModal, setFacultadSeleccionadaModal] = useState("");
   const [carreraSeleccionadaFiltro, setCarreraSeleccionadaFiltro] = useState("Sin filtro");
   const [facultadSeleccionadaFiltro, setFacultadSeleccionadaFiltro] = useState("Sin filtro");
   const [carrerasFiltradas, setCarrerasFiltradas] = useState([]);
+
+  const [loadingCrearModulo, setLoadingCrearModulo] = useState(false);
+  const [modulosServidor, setModulosServidor] = useState(false);
+
+
+  const [carreraSeleccionadaModal, setCarreraSeleccionadaModal] = useState("");
+  const [facultadSeleccionadaModal, setFacultadSeleccionadaModal] = useState("");
+
+  const [nombre, setNombre] = useState("");
+  const [nro_alumnos, setNroAlumnos] = useState("");
+
 
 
   const [modulosArreglo, setModulosArreglo] = useState(null);
@@ -134,35 +147,111 @@ export default function Modulos() {
     }
   };
 
+  const handleChangeNombreModulo = (event) => {
+    setNombre(event.target.value);
+
+  };
+
+  const handleChangeNumAlumnos = (event) => {
+    if (!isNaN(event.target.value) && event.target.value > 0) {
+      setNroAlumnos(event.target.value);
+    }
+    else {
+      setNroAlumnos(0);
+    }
+
+
+  };
+
   const handleOpenModulo = () => setOpenCrearModulo(true);
   const handleCloseModulo = () => setOpenCrearModulo(false);
 
-  const getModulos = async () => {
-    const res = await fetch(`${API}/modulos`);
-    const data = await res.json();
-    console.log(data)
-    setModulosArreglo(data)
-    if (facultadSeleccionadaFiltro === "Sin filtro") {
-      setModulosMostrar(data)
-
+  const crearNuevoModulo = () => {
+    const data = Api.crearNuevoModulo(nombre, facultadSeleccionadaModal, nro_alumnos, carreraSeleccionadaModal, setModulosArreglo, setModulosMostrar, setModulosServidor, facultadSeleccionadaFiltro, carreraSeleccionadaFiltro, setLoadingCrearModulo, setOpenCrearModulo)
+    if (data === 403 || data === 401) {
+      window.localStorage.removeItem("token");
+      window.localStorage.removeItem("user");
+      window.location.href = "/login"
     }
-    if (carreraSeleccionadaFiltro === "Sin filtro" && facultadSeleccionadaFiltro === "Sin filtro") {
-      setModulosMostrar(data)
-
-    }
-    else if (carreraSeleccionadaFiltro === "Sin filtro" && facultadSeleccionadaFiltro !== "Sin filtro") {
-      setModulosMostrar(data.filter((e) => e.facultad === facultadSeleccionadaFiltro))
+    else if (data === -1) {
 
     }
     else {
-      setModulosMostrar(data.filter((e) => e.facultad === facultadSeleccionadaFiltro && e.carrera === carreraSeleccionadaFiltro))
+
     }
-  };
+  }
+
+
+
+  async function obtenerUsuarioNull() {
+    if (!user) {
+      const token = window.localStorage.getItem("token");
+      const idUsuario = window.localStorage.getItem("user");
+      const data = await Api.cargarUsuario(token, idUsuario);
+
+
+      if (data === 401) {
+        window.localStorage.removeItem("token");
+        window.localStorage.removeItem("user");
+        window.location.href = "/login"
+      }
+      else if (data === 403) {
+        window.localStorage.removeItem("token");
+        window.localStorage.removeItem("user");
+        window.location.href = "/login"
+
+      }
+      else if (data === -1) {
+        window.localStorage.removeItem("token");
+        window.localStorage.removeItem("user");
+        window.location.href = "/login"
+
+      }
+      else {
+        setUser(data);
+        setCargandoUsuario(false);
+      }
+
+    }
+
+
+  }
+
+  obtenerUsuarioNull()
+
+
+
+
+
 
 
   useEffect(() => {
-    getModulos();
+    async function cargarModulos() {
+      const data = Api.getModulos(setModulosArreglo, setModulosMostrar, setModulosServidor, facultadSeleccionadaFiltro, carreraSeleccionadaFiltro)
+      if (data === 401) {
+        window.localStorage.removeItem("token");
+        window.localStorage.removeItem("user");
+        window.location.href = "/login"
+      }
+      else if (data === 403) {
+        window.localStorage.removeItem("token");
+        window.localStorage.removeItem("user");
+        window.location.href = "/login"
+
+      }
+      else if (data === -1) {
+
+      }
+      else {
+      }
+
+
+    }
+    cargarModulos();
+
   }, []);
+
+
 
   const [modulosMostrar, setModulosMostrar] = useState(modulosArreglo);
 
@@ -174,7 +263,7 @@ export default function Modulos() {
           <Typography variant="h4" gutterBottom>
             Módulos
           </Typography>
-          {user === "ADMIN" && (
+          {!cargandoUsuario && user && user.tipo_usuario === "ADMIN" && (
             <Button
               variant="contained"
               onClick={handleOpenModulo}
@@ -187,8 +276,7 @@ export default function Modulos() {
 
         </Stack>
 
-
-        {user === "ADMIN" && (
+        {!cargandoUsuario && user && user.tipo_usuario === "ADMIN" && (
           <Grid container spacing={2} style={{ marginBottom: 10 }}>
             <Grid item xs={12} style={{ marginBottom: 10 }}>
               <Paper elevation={3} >
@@ -217,7 +305,7 @@ export default function Modulos() {
           </Grid>
         )}
 
-        {user === "ADMIN" && (
+        {!cargandoUsuario && user && user.tipo_usuario === "ADMIN" && (
           <Grid container spacing={2} style={{ marginBottom: 10 }}>
             <Grid item xs={12}>
               <Paper elevation={3}>
@@ -268,25 +356,43 @@ export default function Modulos() {
           </Grid>
         )}
 
+        <Grid container spacing={2}>
 
 
-
-        <Grid container spacing={2} xs={12}>
-
-
-          {modulosMostrar && modulosMostrar.length >= 1 ? (
-            modulosMostrar.map((e, index) => {
-              return (<Grid item key={index} xs={6} md={4}>
-                <CardModulos modulo={e} getModulos={getModulos} />
-              </Grid>);
-
-            })) : (
+          {modulosServidor ? (
             <Grid item xs={12} md={12}>
-              <LinearProgress />
+              <Typography>Error en el servidor</Typography>
 
             </Grid>
+          ) :
+            (
+              modulosMostrar && modulosMostrar.length >= 1 ? (
+                modulosMostrar.map((e, index) => {
+                  let estudiantesEntrada = [];
+                  if (e.estudiantes) {
+                    estudiantesEntrada = e.estudiantes
+                  }
+                  return (
+                    <Grid item key={index} xs={6} md={4}>
+                      <CardModulos modulo={e} setModulosArreglo={setModulosArreglo} setModulosMostrar={setModulosMostrar} setModulosServidor={setModulosServidor} facultadSeleccionadaFiltro={facultadSeleccionadaFiltro} carreraSeleccionadaFiltro={carreraSeleccionadaFiltro} estudiantesEntrada={estudiantesEntrada} />
+                    </Grid>
+                  );
 
-          )
+                })) : (
+                modulosMostrar && modulosMostrar.length <= 0 ? (
+                  <Grid item xs={12} md={12}>
+                    <Typography>Sin datos que mostrar</Typography>
+
+                  </Grid>
+                ) : (
+                  <Grid item xs={12} md={12}>
+                    <LinearProgress />
+
+                  </Grid>
+                )
+
+              )
+            )
           }
 
         </Grid>
@@ -309,7 +415,13 @@ export default function Modulos() {
           <DialogContentText id="alert-dialog-description">
             <Grid container xs={12} spacing={2}>
               <Grid item xs={12} style={{ marginLeft: 10, marginTop: 10 }}>
-                <TextField label="Nombre módulo" variant="outlined" fullWidth required />
+                <TextField
+                  value={nombre}
+                  onChange={handleChangeNombreModulo}
+                  label="Nombre módulo"
+                  variant="outlined"
+                  fullWidth
+                  required />
               </Grid>
 
               <Grid item xs={12} style={{ marginLeft: 10 }}>
@@ -351,17 +463,33 @@ export default function Modulos() {
 
 
               <Grid item xs={12} style={{ marginLeft: 10 }}>
-                <TextField label="Cantidad máxima estudiantes" variant="outlined" fullWidth required />
+                <TextField
+                  value={nro_alumnos}
+                  onChange={handleChangeNumAlumnos}
+                  label="Cantidad máxima estudiantes"
+                  variant="outlined"
+                  fullWidth
+                  required
+                />
               </Grid>
 
             </Grid>
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseModulo} color="secondary">Cerrar</Button>
-          <Button onClick={handleCloseModulo} variant="contained" autoFocus>
+          <LoadingButton
+            onClick={handleCloseModulo}
+            loading={loadingCrearModulo}
+          >
+            Cerrar
+          </LoadingButton>
+          <LoadingButton
+            onClick={crearNuevoModulo}
+            loading={loadingCrearModulo}
+            variant="contained"
+          >
             Crear
-          </Button>
+          </LoadingButton>
         </DialogActions>
       </Dialog>
     </Page>
