@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState} from 'react';
+import React, { useEffect, useRef, useState} from 'react';
 import Box from '@mui/material/Box';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -28,15 +28,6 @@ const theme = createTheme(
   },
   esES,
 );
-
-function createData(id, apellido, nombre, correo ) {
-  return {
-    id,
-    apellido,
-    nombre,
-    correo,
-  };
-}
 
 function descendingComparator(a, b, orderBy) {
   if (b[orderBy] < a[orderBy]) {

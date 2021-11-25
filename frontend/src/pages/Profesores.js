@@ -31,31 +31,6 @@ export default function Profesores() {
     fetchTeachers();
   }, [fetchTeachers]);
 
-
-  useEffect( () => {
-    setTeachers([
-      {
-        _id: 22654,
-        nombre: "Alejandro",
-        apellido: "Soto",
-        correo: "ale@utalca.cl"
-      },
-      {
-        _id: 82614,
-        nombre: "Pablo",
-        apellido: "Covarrubias",
-        correo: "cova@utalca.cl"
-      },
-      {
-        _id: 72650,
-        nombre: "Ivan",
-        apellido: "Ivanicevic",
-        correo: "ivan@utalca.cl"
-      },
-
-    ])
-  }, []);
-
   const updateUI = (newTeacher) => {
     setTeachers( prev => [...prev, newTeacher] )
     setShowNewProfessorDialog(false);

@@ -193,7 +193,7 @@ def agregarNuevoProfesor():
             'eventos':request.json['eventos'],
             'modulos':request.json['modulos'],
         })
-        return jsonify({'message': 'Profesor ingresado con éxito'}), 200
+        return jsonify({'message': 'Profesor ingresado con éxito', 'id':id}), 200
     else:
         return jsonify({'message': 'El profesor ingresado ya se encuentra en nuestros registros'}), 200
 

@@ -1,19 +1,27 @@
-import React, { useState, useRef } from "react";
+import React, { useCallback, useEffect, useRef, useState} from 'react';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
+import InputAdornment from '@mui/material/InputAdornment';
+import IconButton from '@mui/material/IconButton';
 import Alert from '@mui/material/Alert';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import md5 from 'js-md5';
-import { crearProfesor } from '../../api/Api';
+import { crearProfesor, obtenerModulos } from '../../api/Api';
+import Tags from '../Tags';
 
 export default function RegistrarProfesorDialog({ onClose, onSave, open }) {
 
+  const isMounted = useRef(true);
   const [ error, setError ] = useState(false);
   const [ loading, setLoading ] = useState(false);
+  const [ selectedCourses, setSelectedCourses ] = useState([]);
+  const [ modulos, setModulos ] = useState([]);
+  const [showPassword, setShowPassword] = useState(false);
 
   const refNombre = useRef();
   const refApellido = useRef();
@@ -21,6 +29,25 @@ export default function RegistrarProfesorDialog({ onClose, onSave, open }) {
   const refContrasena = useRef();
   const refConfContrasena = useRef();
   const refCorreo = useRef();
+
+  useEffect(() => {
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
+
+  const fetchModules = useCallback(
+    async function() {
+      const modulosAux = await obtenerModulos();
+      if(isMounted.current) {
+        setModulos(modulosAux);
+      }
+    },[]
+  );
+
+  useEffect(() => {
+    fetchModules();
+  }, [fetchModules]);
 
   const handleCancel = () => {
     onClose();
@@ -45,12 +72,13 @@ export default function RegistrarProfesorDialog({ onClose, onSave, open }) {
     }
 
     const profesor = {
+      id: '',
       nombre: refNombre.current.value,
       apellido: refApellido.current.value,
       correo: refCorreo.current.value,
       rut: refRut.current.value,
       contrasena: md5(refContrasena.current.value),
-      modulos: [],
+      modulos: selectedCourses.map( c => c.id ),
       eventos: [],
     };
 
@@ -60,10 +88,20 @@ export default function RegistrarProfesorDialog({ onClose, onSave, open }) {
       window.localStorage.removeItem("user");
       window.location.href = "/login"
     }
+
+    profesor.id = res.id;
     setLoading(false);
     delete profesor.contrasena;
     onSave(profesor);
 
+  }
+
+  const handleShowPassword = () => {
+    setShowPassword((show) => !show);
+  };
+
+  const handleModules = (data) => {
+    setSelectedCourses(data);
   }
 
   return(
@@ -116,6 +154,27 @@ export default function RegistrarProfesorDialog({ onClose, onSave, open }) {
           required
           type="email"
         />
+
+        <TextField
+          autoFocus
+          fullWidth
+          label="Contraseña"
+          margin="dense"
+          type={showPassword ? 'text' : 'password'}
+          onChange={ () => setError("") }
+          inputRef={ refContrasena }
+          required
+          InputProps={{
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton onClick={handleShowPassword} edge="end">
+                  { showPassword ? <VisibilityIcon /> : <VisibilityOffIcon />}
+                </IconButton>
+              </InputAdornment>
+            )
+          }}
+        />
+
         <TextField
           autoFocus
           fullWidth
@@ -124,18 +183,25 @@ export default function RegistrarProfesorDialog({ onClose, onSave, open }) {
           onChange={ () => setError("") }
           inputRef={ refConfContrasena }
           required
-          type="password"
+          type={showPassword ? 'text' : 'password'}
+          InputProps={{
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton onClick={handleShowPassword} edge="end">
+                  { showPassword ? <VisibilityIcon /> : <VisibilityOffIcon />}
+                </IconButton>
+              </InputAdornment>
+            )
+          }}
         />
-        <TextField
-          autoFocus
-          fullWidth
-          label="Contraseña"
-          margin="dense"
-          onChange={ () => setError("") }
-          inputRef={ refContrasena }
-          required
-          type="password"
+
+        <Tags
+          options={modulos}
+          label='Módulos'
+          onSelect={handleModules}
+          labeledProperty='nombre'
         />
+
       </DialogContent>
       <DialogActions>
         <Button disabled={ loading } onClick={ handleCancel }>

@@ -391,11 +391,45 @@ async function eliminarProfesor(id) {
         });
         return resp.status;
     }
-    catch(err){
-        console.log("err", err);
+    catch {
         return -1;
     }
 }
+
+async function obtenerModulos() {
+    try {
+        const token = window.localStorage.getItem('token');
+
+        const resp = await fetch(`${API}/modulos`, {
+            method: 'GET',
+            headers: {
+                "Content-Type": "application/json",
+                'Authorization': 'Bearer ' + token
+            }
+        })
+
+        if (! resp.ok) return -1;
+
+        else if (resp.status === 403) {
+            return 403;
+        }
+        else if (resp.status === 401) {
+            return 401;
+        }
+
+        else if (resp.status === 200) {
+           return await resp.json();
+        }
+        else {
+            return -1;
+        }
+    }
+    catch(err){
+
+    }
+};
+
+
 
 async function eliminarModulo(id, setLoadingEliminar, setModulosArreglo, setModulosMostrar, setModulosServidor, facultadSeleccionadaFiltro, carreraSeleccionadaFiltro) {
     try {
@@ -435,7 +469,7 @@ async function eliminarModulo(id, setLoadingEliminar, setModulosArreglo, setModu
     }
 };
 
-export { getProfesores, crearProfesor, eliminarProfesor};
+export { getProfesores, crearProfesor, eliminarProfesor, obtenerModulos };
 
 export default {
     cargarUsuario,
