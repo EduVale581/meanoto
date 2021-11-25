@@ -189,10 +189,29 @@ export default function ProfesoresTable() {
     setShowNewProfessorDialog(true);
   }
 
+  const handleSearch = (value) => {
+    const cleanValue = removeAccents(value.toLowerCase());
+    const filtered = teachers.filter(
+      r => (
+        removeAccents(r.apellido.toLowerCase()).indexOf(cleanValue) !== -1 ||
+        removeAccents(r.nombre.toLowerCase()).indexOf(cleanValue) !== -1 ||
+        removeAccents(r.correo.toLowerCase()).indexOf(cleanValue) !== -1
+      )
+    );
+    setRows(filtered);
+  }
+
+  function removeAccents(str) {
+    return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  }
+
   return (
     <Box sx={{ width: '100%' }}>
 
-      <SearchBar />
+      <SearchBar
+        placeholder='Busca por nombre, apellido o correo'
+        onSearch={ ( e ) => handleSearch(e.target.value)}
+      />
       <Paper sx={{ width: '100%', mb: 2 }}>
         <TableContainer>
           <Table
