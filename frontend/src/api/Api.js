@@ -57,9 +57,6 @@ async function cargarUsuario(token, idUsuario) {
 }
 
 async function verificarTexto(link) {
-
-
-
     try {
         const resp = await fetch(`${API}/obtenertexto`, {
             method: "POST",
@@ -99,6 +96,7 @@ async function verificarTexto(link) {
 
     }
 }
+
 async function registroEstudiante(bodyFetch) {
     try {
         const resp = await fetch(`${API}/registro`, {
@@ -139,6 +137,7 @@ async function registroEstudiante(bodyFetch) {
 
     }
 }
+
 async function obtenerToken(rut, password) {
     try {
         const resp = await fetch(`${API}/token`, {
@@ -164,8 +163,6 @@ async function obtenerToken(rut, password) {
 
 
     }
-
-
 }
 
 async function getModulos(setModulosArreglo, setModulosMostrar, setModulosServidor, facultadSeleccionadaFiltro, carreraSeleccionadaFiltro) {
@@ -217,12 +214,9 @@ async function getModulos(setModulosArreglo, setModulosMostrar, setModulosServid
         setModulosServidor(true)
 
     }
-
-
 };
 
 async function crearNuevoModulo(nombre, facultadSeleccionadaModal, nro_alumnos, carreraSeleccionadaModal, setModulosArreglo, setModulosMostrar, setModulosServidor, facultadSeleccionadaFiltro, carreraSeleccionadaFiltro, setLoadingCrearModulo, setOpenCrearModulo) {
-
     const token = window.localStorage.getItem('token');
 
     try {
@@ -267,10 +261,6 @@ async function crearNuevoModulo(nombre, facultadSeleccionadaModal, nro_alumnos, 
         return -1;
 
     }
-
-
-
-
 };
 
 async function guardarCantidadEstudiantes(id, cantEstudiantes, profesorSeleccionado, setLoadingEditar, setOpenEditarCantidadAlumnos, setModulosArreglo, setModulosMostrar, setModulosServidor, facultadSeleccionadaFiltro, carreraSeleccionadaFiltro) {
@@ -314,8 +304,6 @@ async function guardarCantidadEstudiantes(id, cantEstudiantes, profesorSeleccion
     catch {
         return -1;
     }
-
-
 };
 
 async function getProfesores() {
@@ -341,18 +329,14 @@ async function getProfesores() {
         else if (resp.status === 200) {
             const data = await resp.json();
             return data;
-
         }
         else {
             return -1;
         }
-
     }
     catch {
         return -1;
     }
-
-
 };
 
 async function eliminarModulo(id, setLoadingEliminar, setModulosArreglo, setModulosMostrar, setModulosServidor, facultadSeleccionadaFiltro, carreraSeleccionadaFiltro) {
@@ -391,10 +375,9 @@ async function eliminarModulo(id, setLoadingEliminar, setModulosArreglo, setModu
     catch {
         return -1;
     }
-
-
-
 };
+
+export { getProfesores };
 
 export default {
     cargarUsuario,

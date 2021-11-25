@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback} from 'react';
+import React, { useCallback, useEffect, useRef, useState} from 'react';
 import Box from '@mui/material/Box';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -13,7 +13,7 @@ import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 import MoreIcon from '@mui/icons-material/More';
 import { visuallyHidden } from '@mui/utils';
-import axios from 'axios';
+import { getProfesores } from '../../api/Api';
 
 import SearchBar from '../SearchBar';
 // import RoomAssignmentDialog from './RoomAssignmentDialog';
@@ -120,6 +120,7 @@ function EnhancedTableHead(props) {
 }
 
 export default function ProfesoresTable() {
+  const isMounted = useRef(true);
   const [order, setOrder] = useState('asc');
   const [orderBy, setOrderBy] = useState('calories');
   const [selectedId, setSelectedId] = useState();
@@ -133,6 +134,27 @@ export default function ProfesoresTable() {
   ]);
   const [selectedRow, setSelectedRow] = useState();
   const [showNewProfessorDialog, setShowNewProfessorDialog] = useState(false);
+
+  useEffect(() => {
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
+
+  const fetchTeachers = useCallback(
+    async function() {
+      const teachersAux = await getProfesores();
+      if(isMounted.current) {
+        setTeachers(teachersAux);
+        setRows(teachersAux);
+      }
+    },[]
+  );
+
+  useEffect(() => {
+    fetchTeachers();
+  }, [fetchTeachers]);
+
 
   useEffect( () => {
     setTeachers([
