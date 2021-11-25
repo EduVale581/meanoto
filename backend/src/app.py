@@ -51,8 +51,7 @@ def obtenerTextoPDF(numMatricula):
         interpreter = PDFPageInterpreter(rsrcmgr, device)
         for page in PDFPage.create_pages(doc):
             interpreter.process_page(page)
-        
-    
+
     textoPdf = output_string.getvalue()
 
     if numMatricula in textoPdf:
@@ -73,7 +72,7 @@ def create_token():
     if user is None:
         # the user was not found on the database
         return jsonify({'message': 'Nombre de usuario o contraseña incorrectos'}), 401
-    
+
     # create a new token with the user id inside
     access_token = create_access_token(identity=user['_id'], expires_delta=False)
     return jsonify({ "token": access_token, "user_id": user['_id'] }),200
@@ -124,7 +123,7 @@ def eliminarModulo(id):
 def getModulos():
     modulos = []
     for doc in db.db.modulos.find():
-        idModulo =  doc['_id']  
+        idModulo =  doc['_id']
         profesor = db.db.profesores.find_one({"_id": doc['profesor']})
         facultad = db.db.facultades.find_one({"_id": doc['facultad']})
         estudiantesArreglo = []
@@ -164,7 +163,7 @@ def getModulos():
 @jwt_required()
 def getProfesores():
     profesores = []
-    for doc in db.db.profesores.find():    
+    for doc in db.db.profesores.find():
 
         profesores.append({
             'nombreCompleto': doc['nombre']+' ' + doc['apellido'],
@@ -178,6 +177,31 @@ def getProfesores():
             'eventos': doc['eventos'],
         })
     return jsonify(profesores), 200
+
+
+@app.route('/profesores', methods=['POST'])
+@jwt_required()
+def agregarNuevoProfesor():
+    profesorExistente = db.db.profesores.find_one({"rut": request.json['rut']})
+    if profesorExistente is None:
+        id = db.db.profesores.insert({
+            'nombre': request.json['nombre'],
+            'apellido': request.json['apellido'],
+            'rut': request.json['rut'],
+            'correo':request.json['correo'],
+            'contrasena':request.json['contrasena'],
+            'eventos':request.json['eventos'],
+            'modulos':request.json['modulos'],
+        })
+        return jsonify({'message': 'Profesor ingresado con éxito'}), 200
+    else:
+        return jsonify({'message': 'El profesor ingresado ya se encuentra en nuestros registros'}), 200
+
+@app.route('/profesores/<id>', methods=['DELETE'])
+@jwt_required()
+def eliminarProfesor(id):
+    db.db.profesores.delete_one({'_id': ObjectId(id)})
+    return jsonify({'message': 'Profesor Eliminado'}), 200
 
 @app.route('/usuario', methods=['POST'])
 @jwt_required()

@@ -11,12 +11,23 @@ import TableSortLabel from '@mui/material/TableSortLabel';
 import Paper from '@mui/material/Paper';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
-import MoreIcon from '@mui/icons-material/More';
+import DeleteIcon from '@mui/icons-material/Delete';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { esES } from '@mui/material/locale';
+
 import { visuallyHidden } from '@mui/utils';
-import { getProfesores } from '../../api/Api';
 
 import SearchBar from '../SearchBar';
 // import RoomAssignmentDialog from './RoomAssignmentDialog';
+//
+const theme = createTheme(
+  {
+    palette: {
+      primary: { main: '#1976d2' },
+    },
+  },
+  esES,
+);
 
 function createData(id, apellido, nombre, correo ) {
   return {
@@ -119,19 +130,14 @@ function EnhancedTableHead(props) {
   );
 }
 
-export default function ProfesoresTable() {
+export default function ProfesoresTable({teachers, onDelete}) {
   const isMounted = useRef(true);
   const [order, setOrder] = useState('asc');
   const [orderBy, setOrderBy] = useState('calories');
   const [selectedId, setSelectedId] = useState();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
-  const [teachers, setTeachers] = useState([]);
-  const [rows, setRows] = useState([
-    createData('22654', 'Soto', 'Alejandro', 'ale@utalca.cl'),
-    createData('82614', 'Covarrubias', 'Pablo', 'cova@utalca.cl'),
-    createData('72650', 'Ivanicevic', 'Ivan', 'ivan@utalca.cl'),
-  ]);
+  const [rows, setRows] = useState([]);
   const [selectedRow, setSelectedRow] = useState();
   const [showNewProfessorDialog, setShowNewProfessorDialog] = useState(false);
 
@@ -141,44 +147,9 @@ export default function ProfesoresTable() {
     };
   }, []);
 
-  const fetchTeachers = useCallback(
-    async function() {
-      const teachersAux = await getProfesores();
-      if(isMounted.current) {
-        setTeachers(teachersAux);
-        setRows(teachersAux);
-      }
-    },[]
-  );
-
-  useEffect(() => {
-    fetchTeachers();
-  }, [fetchTeachers]);
-
-
   useEffect( () => {
-    setTeachers([
-      {
-        _id: 22654,
-        nombre: "Alejandro",
-        apellido: "Soto",
-        correo: "ale@utalca.cl"
-      },
-      {
-        _id: 82614,
-        nombre: "Pablo",
-        apellido: "Covarrubias",
-        correo: "cova@utalca.cl"
-      },
-      {
-        _id: 72650,
-        nombre: "Ivan",
-        apellido: "Ivanicevic",
-        correo: "ivan@utalca.cl"
-      },
-
-    ])
-  }, []);
+    setRows(teachers);
+  }, [teachers])
 
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === 'asc';
@@ -187,7 +158,7 @@ export default function ProfesoresTable() {
   };
 
   const handleClick = (event, row) => {
-    console.log("la row", row);
+    // console.log("la row", row);
     setSelectedId(row.id);
     setSelectedRow(row);
   };
@@ -207,8 +178,9 @@ export default function ProfesoresTable() {
   const emptyRows =
     page > 0 ? Math.max(0, (1 + page) * rowsPerPage - rows.length) : 0;
 
-  const handleShowTeacherDetails = (row) => {
-    setShowNewProfessorDialog(true);
+  const handleDeleteTeacher = (row) => {
+    onDelete(row);
+
   }
 
   const handleSearch = (value) => {
@@ -254,45 +226,47 @@ export default function ProfesoresTable() {
               {/* if you don't need to support IE11, you can replace the `stableSort` call with:
                  rows.slice().sort(getComparator(order, orderBy)) */}
               {stableSort(rows, getComparator(order, orderBy))
-                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((row, index) => {
-                  const isItemSelected = isSelected(row.name);
-                  const labelId = `enhanced-table-checkbox-${index}`;
+                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                  .map((row, index) => {
+                    const isItemSelected = isSelected(row.name);
+                    const labelId = `enhanced-table-checkbox-${index}`;
 
-                  return (
-                    <TableRow
-                      hover
-                      onClick={(event) => handleClick(event, row)}
-                      role="checkbox"
-                      aria-checked={isItemSelected}
-                      tabIndex={-1}
-                      key={index}
-                      // selected={isItemSelected}
-                    >
-                      <TableCell
-                        component="th"
-                        id={labelId}
-                        scope="row"
-                        padding="none"
+                    return (
+                      <TableRow
+                        hover
+                        onClick={(event) => handleClick(event, row)}
+                        role="checkbox"
+                        aria-checked={isItemSelected}
+                        tabIndex={-1}
+                        key={index}
+                        // selected={isItemSelected}
                       >
-                        {row.apellido}
-                      </TableCell>
-                      <TableCell align="right">{row.nombre}</TableCell>
-                      <TableCell align="right">{row.correo}</TableCell>
+                        <TableCell
+                          component="th"
+                          id={labelId}
+                          scope="row"
+                          padding="none"
+                        >
+                          {row.apellido}
+                        </TableCell>
+                        <TableCell align="right">{row.nombre}</TableCell>
+                        <TableCell align="right">{row.correo}</TableCell>
 
-                      <TableCell align="right">
+                        <TableCell align="right">
 
-                        <Tooltip title="Ver más">
-                          <IconButton onClick={ () => handleShowTeacherDetails(row) }>
-                            <MoreIcon/>
-                          </IconButton>
-                        </Tooltip>
+                          <Tooltip title="Ver más">
+                            <IconButton
+                              onClick={ () => handleDeleteTeacher(row) }
+                            >
+                              <DeleteIcon/>
+                            </IconButton>
+                          </Tooltip>
 
-                      </TableCell>
+                        </TableCell>
 
-                    </TableRow>
-                  );
-                })}
+                      </TableRow>
+                    );
+                  })}
 
               {emptyRows > 0 && (
                 <TableRow style={{ height: 33 * emptyRows }} >
@@ -302,15 +276,19 @@ export default function ProfesoresTable() {
             </TableBody>
           </Table>
         </TableContainer>
-        <TablePagination
-          rowsPerPageOptions={[5, 10, 25]}
-          component="div"
-          count={rows.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-        />
+
+        <ThemeProvider theme={theme}>
+          <TablePagination
+            rowsPerPageOptions={[5, 10, 25]}
+            component="div"
+            count={rows.length}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+          />
+        </ThemeProvider>
+
       </Paper>
     </Box>
   );
