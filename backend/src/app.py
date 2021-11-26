@@ -184,7 +184,7 @@ def getProfesores():
 def agregarNuevoProfesor():
     profesorExistente = db.db.profesores.find_one({"rut": request.json['rut']})
     if profesorExistente is None:
-        id = db.db.profesores.insert({
+        id = db.db.profesores.insert_one({
             'nombre': request.json['nombre'],
             'apellido': request.json['apellido'],
             'rut': request.json['rut'],
