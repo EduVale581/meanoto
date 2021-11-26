@@ -227,7 +227,7 @@ export default function Modulos() {
 
   useEffect(() => {
     async function cargarModulos() {
-      const data = Api.getModulos(setModulosArreglo, setModulosMostrar, setModulosServidor, facultadSeleccionadaFiltro, carreraSeleccionadaFiltro)
+      const data = await Api.getModulos(setModulosArreglo, setModulosMostrar, setModulosServidor, facultadSeleccionadaFiltro, carreraSeleccionadaFiltro)
       if (data === 401) {
         window.localStorage.removeItem("token");
         window.localStorage.removeItem("user");
