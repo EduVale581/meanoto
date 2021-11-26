@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState} from 'react';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Dialog from '@mui/material/Dialog';
+import Box from '@mui/material/Box';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
@@ -13,6 +14,7 @@ import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import md5 from 'js-md5';
 import { crearProfesor, obtenerModulos } from '../../api/Api';
 import Tags from '../Tags';
+import { validateRut } from '@fdograph/rut-utilities';
 
 export default function RegistrarProfesorDialog({ onClose, onSave, open }) {
 
@@ -71,12 +73,22 @@ export default function RegistrarProfesorDialog({ onClose, onSave, open }) {
       return setError("Las contraseñas no coinciden.");
     }
 
+    if( selectedCourses.length === 0 ) {
+      return setError("Debe asignar al menos un módulo.")
+    }
+
+    const rut = refRut.current.value.replaceAll('.', '').replaceAll('-', '');
+
+    if(! validateRut(rut)) {
+      return setError("Rut inválido.");
+    }
+
     const profesor = {
       id: '',
       nombre: refNombre.current.value,
       apellido: refApellido.current.value,
       correo: refCorreo.current.value,
-      rut: refRut.current.value,
+      rut,
       contrasena: md5(refContrasena.current.value),
       modulos: selectedCourses.map( c => c.id ),
       eventos: [],
@@ -101,6 +113,7 @@ export default function RegistrarProfesorDialog({ onClose, onSave, open }) {
   };
 
   const handleModules = (data) => {
+    setError("");
     setSelectedCourses(data);
   }
 
@@ -108,12 +121,6 @@ export default function RegistrarProfesorDialog({ onClose, onSave, open }) {
     <Dialog open={open} onClose={ onClose }>
       <DialogTitle>Nuevo Profesor</DialogTitle>
       <DialogContent>
-        {/* <DialogContentText> */}
-        {/* </DialogContentText> */}
-        { error && (
-          <Alert severity="error">{ error }</Alert>
-        ) }
-
         <TextField
           autoFocus
           fullWidth
@@ -203,7 +210,14 @@ export default function RegistrarProfesorDialog({ onClose, onSave, open }) {
         />
 
       </DialogContent>
+        { error && (
+          <Box mb={2} width="100%">
+            <Alert severity="error">{ error }</Alert>
+          </Box>
+        ) }
+
       <DialogActions>
+
         <Button disabled={ loading } onClick={ handleCancel }>
           Cancelar
         </Button>
@@ -214,6 +228,8 @@ export default function RegistrarProfesorDialog({ onClose, onSave, open }) {
           variant="contained">
           Aceptar
         </Button>
+
+
       </DialogActions>
     </Dialog>
   );
