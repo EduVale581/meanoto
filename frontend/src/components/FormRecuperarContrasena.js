@@ -1,38 +1,34 @@
 import { useState } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { Form, Formik } from 'formik';
-import { Icon } from '@iconify/react';
-import eyeFill from '@iconify/icons-eva/eye-fill';
-import eyeOffFill from '@iconify/icons-eva/eye-off-fill';
 import md5 from 'js-md5';
 // material
 import {
   Link,
   Stack,
   TextField,
-  IconButton,
-  InputAdornment,
+  Alert
 } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
 import { validateRut } from '@fdograph/rut-utilities';
 import Api from 'src/api/Api';
 
 // ----------------------------------------------------------------------
-
-export default function LoginForm() {
+export default function FormRecuperarContrasena({ setIdUsuario }) {
   const navigate = useNavigate();
-  const [showPassword, setShowPassword] = useState(false);
+
+  const [alerta, setAlerta] = useState(false);
+  const [mensajeAlerta, setMensajeAlerta] = useState("");
 
 
-  const handleShowPassword = () => {
-    setShowPassword((show) => !show);
-  };
+
+
 
   return (
     <Formik
       initialValues={{
         rut: "",
-        password: ""
+        validarRut: ""
       }}
       validate={(values) => {
         const errors = {};
@@ -42,19 +38,36 @@ export default function LoginForm() {
 
         }
         else if (!validateRut(values.rut)) {
-          errors.rut = "Rut Invalido";
+          errors.rut = "Rut Inválido";
 
         }
-        else if (!values.password) {
-          errors.password = "Contraseña Requerida";
+        else if (!values.validarRut) {
+          errors.validarRut = "Verificación Rut Requerida";
+        }
+        else if (!validateRut(values.validarRut)) {
+          errors.validarRut = "Verificación Rut Inválido";
+        }
+        else if (values.rut !== values.validarRut) {
+          errors.validarRut = "Verificación NO Válida";
         }
 
         return errors;
       }}
       onSubmit={async (values) => {
-        const contrasena = md5(values.password)
+        let pass = '';
+        let str = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' +
+          'abcdefghijklmnopqrstuvwxyz0123456789@#$';
 
-        const data = await Api.obtenerToken(values.rut, contrasena)
+        for (let i = 1; i <= 8; i++) {
+          let char = Math.floor(Math.random()
+            * str.length + 1);
+
+          pass += str.charAt(char)
+        }
+        let contrasenaGenerada = pass
+        let contrasenaMD5 = md5(contrasenaGenerada);
+
+        const data = await Api.enviarContrasena(values.rut, contrasenaGenerada, contrasenaMD5)
         if (data === -1) {
 
         }
@@ -65,16 +78,16 @@ export default function LoginForm() {
 
         }
         else if (data === 300) {
-          /*usuario no validado*/
+          setMensajeAlerta("Error en el servidor");
+          setAlerta(true);
 
         }
         else if (!data) {
 
+
         }
         else {
-          window.localStorage.setItem("token", data.token)
-          window.localStorage.setItem("user", data.user_id)
-          navigate('/dashboard', { replace: true });
+          setIdUsuario(data.message)
 
         }
 
@@ -110,32 +123,26 @@ export default function LoginForm() {
 
               <TextField
                 fullWidth
-                type={showPassword ? 'text' : 'password'}
-                label="Contraseña"
-                name="password"
+                type="text"
+                label="Validar Rut"
+                name="validarRut"
                 onChange={handleChange}
                 onBlur={handleBlur}
-                value={values.password}
-                InputProps={{
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton onClick={handleShowPassword} edge="end">
-                        <Icon icon={showPassword ? eyeFill : eyeOffFill} />
-                      </IconButton>
-                    </InputAdornment>
-                  )
-                }}
-                error={Boolean(touched.password && errors.password)}
-                helperText={touched.password && errors.password}
+                value={values.validarRut}
+                error={Boolean(touched.validarRut && errors.validarRut)}
+                helperText={touched.validarRut && errors.validarRut}
+
               />
             </Stack>
 
             <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ my: 2 }}>
 
-              <Link component={RouterLink} variant="subtitle2" to="/recuperar">
-                ¿Recuperar Contraseña?
+              <Link component={RouterLink} variant="subtitle2" to="/login">
+                Iniciar Sesión
               </Link>
             </Stack>
+
+            {alerta && <Alert severity="error">{mensajeAlerta}</Alert>}
 
             <LoadingButton
               fullWidth
@@ -144,7 +151,7 @@ export default function LoginForm() {
               variant="contained"
               loading={isSubmitting}
             >
-              Ingresar
+              Enviar Contraseña Provisoria
             </LoadingButton>
           </Form>
         );

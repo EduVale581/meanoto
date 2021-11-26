@@ -12,6 +12,7 @@ import Salas from './pages/Salas';
 import Modulos from './pages/Modulos';
 import Profesores from './pages/Profesores';
 import { UsuarioProvider } from './context/usuarioContext';
+import RecuperarContrasena from './pages/RecuperarContrasena';
 
 // ----------------------------------------------------------------------
 
@@ -37,6 +38,7 @@ export default function Router() {
         { path: 'login', element: <Login /> },
         { path: 'register', element: <Register /> },
         { path: '404', element: <NotFound /> },
+        { path: 'recuperar', element: <RecuperarContrasena /> },
         { path: '/', element: <Navigate to="/dashboard" /> },
         { path: '*', element: <Navigate to="/404" /> }
       ]

@@ -7,6 +7,9 @@ from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identi
 from flask_mail import Mail,  Message
 
 from io import StringIO
+import string
+import random
+import hashlib
 
 import dropbox
 
@@ -38,6 +41,20 @@ jwt = JWTManager(app)
 mail = Mail(app)
 dbx = dropbox.Dropbox("tqNg1q6lWygAAAAAAAAAARN-TPPDgpDCV18QtmdhiG_61Xk3zZFQwFPvKFjv5FdU")
 CORS(app)
+
+## characters to generate password from
+characters = list(string.ascii_letters + string.digits)
+
+def generate_random_password(length):
+    random.shuffle(characters)
+    ## picking random characters from the list
+    password = []
+    for i in range(length):
+        password.append(random.choice(characters))
+    random.shuffle(password)
+    mostrar = "".join(password)
+
+    return mostrar
 
 
 def obtenerTextoPDF(numMatricula):
@@ -241,6 +258,49 @@ def iniciarRegistro():
                 body="Cuenta creada, Falta verificar datos."
             )
         return jsonify({'message': 'Estudiante ingresado con éxito'}), 200
+
+@app.route('/contrasenaProvisoria', methods=['POST'])
+def contrasenaProvisoria():
+    usuario = db.db.usuarios.find_one({"rut": request.json['rut']})
+    
+    if usuario is None:
+        return jsonify({'message': 'Error al obtener usuario'}), 300
+    else:
+
+        db.db.usuarios.update_one({'_id': ObjectId(usuario['_id'])}, {"$set": {
+        'contrasena': request.json['contrasenaMD5']
+        }})
+        msg = mail.send_message(
+            'Recuperación de Contraseña',
+            sender='meanoto2021@gmail.com',
+            recipients=[usuario['correo']],
+            body="La nueva contraseña es: "+request.json['contrasena']
+        )
+        return jsonify({'message': usuario['_id']}), 200
+
+@app.route('/actualizarContra', methods=['POST'])
+def actualizarContra():
+    usuario = db.db.usuarios.find_one({"_id": ObjectId(request.json['id'])}, {"contrasena": request.json['provisoria']})
+    
+    if usuario is None:
+        return jsonify({'message': 'Error al obtener usuario'}), 300
+    else:
+
+        db.db.usuarios.update_one({'_id': ObjectId(usuario['_id'])}, {"$set": {
+        'contrasena': request.json['contrasena']
+        }})
+        usuario2= db.db.usuarios.find_one({"_id": ObjectId(request.json['id'])})
+        if usuario2 is None:
+            return jsonify({'message': "OK"}), 200
+        else:
+
+            msg = mail.send_message(
+                'Recuperación de Contraseña',
+                sender='meanoto2021@gmail.com',
+                recipients=[usuario2['correo']],
+                body="Contraseña cambiada con éxito"
+            )
+            return jsonify({'message': "OK"}), 200
 
 
 

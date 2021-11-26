@@ -306,6 +306,10 @@ async function guardarCantidadEstudiantes(id, cantEstudiantes, profesorSeleccion
             return data;
 
         }
+        else if (resp.status === 300) {
+            return 300;
+
+        }
         else {
             return -1;
         }
@@ -341,6 +345,10 @@ async function getProfesores() {
         else if (resp.status === 200) {
             const data = await resp.json();
             return data;
+
+        }
+        else if (resp.status === 300) {
+            return 300;
 
         }
         else {
@@ -383,6 +391,94 @@ async function eliminarModulo(id, setLoadingEliminar, setModulosArreglo, setModu
             return data;
 
         }
+        else if (resp.status === 300) {
+            return 300;
+
+        }
+        else {
+            return -1;
+        }
+
+    }
+    catch {
+        return -1;
+    }
+
+
+
+};
+
+async function enviarContrasena(rut, contrasena, contrasenaMD5) {
+    try {
+
+        const resp = await fetch(`${API}/contrasenaProvisoria`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ rut: rut, contrasena: contrasena, contrasenaMD5: contrasenaMD5 }),
+        });
+
+
+
+        if (resp.status === 403) {
+            return 403;
+        }
+        else if (resp.status === 401) {
+            return 401;
+        }
+        else if (resp.status === 200) {
+            const data = await resp.json();
+            return data;
+
+        }
+        else if (resp.status === 300) {
+            return 300;
+
+        }
+        else if (!resp.ok) return -1
+        else {
+            return -1;
+        }
+
+    }
+    catch {
+        return -1;
+    }
+
+
+
+};
+
+async function cambiarContrasena(id, provisoria, contrasena) {
+    try {
+
+        const resp = await fetch(`${API}/actualizarContra`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ id: id, provisoria: provisoria, contrasena: contrasena }),
+        });
+
+
+
+        if (resp.status === 403) {
+            return 403;
+        }
+        else if (resp.status === 401) {
+            return 401;
+        }
+        else if (resp.status === 200) {
+            const data = await resp.json();
+            return data;
+
+        }
+        else if (resp.status === 300) {
+            return 300;
+
+        }
+        else if (!resp.ok) return -1
         else {
             return -1;
         }
@@ -406,6 +502,8 @@ export default {
     eliminarModulo,
     registroEstudiante,
     verificarTexto,
+    enviarContrasena,
+    cambiarContrasena,
     dbx,
     API
 };
