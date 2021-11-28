@@ -251,7 +251,19 @@ export default function Estudiantes() {
                                 onClick={() => {
                                   Api.eliminarEstudiante(row.id).then(() => {
                                     Api.getEstudiantes().then((respuesta) => {
-                                      setEstudiantes(respuesta)
+                                      if (respuesta === 403 || respuesta === 401) {
+                                        window.localStorage.removeItem("token");
+                                        window.localStorage.removeItem("user");
+                                        window.location.href = "/login"
+
+                                      }
+                                      else if (respuesta === 300 || respuesta === -1) {
+
+                                      }
+                                      else {
+                                        setEstudiantes(respuesta)
+
+                                      }
                                     })
                                   }).catch(() => {
 
@@ -277,7 +289,21 @@ export default function Estudiantes() {
 
                                         } else {
                                           Api.getEstudiantes().then((respuesta) => {
-                                            setEstudiantes(respuesta)
+                                            if (respuesta === 403 || respuesta === 401) {
+                                              window.localStorage.removeItem("token");
+                                              window.localStorage.removeItem("user");
+                                              window.location.href = "/login"
+
+                                            }
+                                            else if (respuesta === 300 || respuesta === -1) {
+
+                                            }
+                                            else {
+                                              setEstudiantes(respuesta)
+
+                                            }
+
+
                                           })
                                         }
 
@@ -311,7 +337,19 @@ export default function Estudiantes() {
                                         }
                                         else {
                                           Api.getEstudiantes().then((respuesta) => {
-                                            setEstudiantes(respuesta)
+                                            if (respuesta === 403 || respuesta === 401) {
+                                              window.localStorage.removeItem("token");
+                                              window.localStorage.removeItem("user");
+                                              window.location.href = "/login"
+
+                                            }
+                                            else if (respuesta === 300 || respuesta === -1) {
+
+                                            }
+                                            else {
+                                              setEstudiantes(respuesta)
+
+                                            }
                                           })
 
                                         }
@@ -362,7 +400,7 @@ export default function Estudiantes() {
             />
           </ThemeProvider>
         </Card>
-        {openModalEditar && (<ModalEditarEstudiante open={openModalEditar} setOpen={setOpenModalEditar} estudiante={estudiante} setEstudiantes={setEstudiantes} />)}
+        {openModalEditar && (<ModalEditarEstudiante open={openModalEditar} setOpen={setOpenModalEditar} estudiante={estudiante} setEstudiante={setEstudiante} setEstudiantes={setEstudiantes} />)}
 
 
 

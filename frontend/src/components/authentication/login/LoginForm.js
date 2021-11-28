@@ -16,12 +16,17 @@ import {
 import { LoadingButton } from '@mui/lab';
 import { validateRut } from '@fdograph/rut-utilities';
 import Api from 'src/api/Api';
+import Alerta from 'src/components/Alerta';
 
 // ----------------------------------------------------------------------
 
 export default function LoginForm() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
+
+  const [mostrarAlerta, setMostrarAlerta] = useState(false);
+  const [mensajeAlerta, setMensajeAlerta] = useState("");
+  const [varianteAlerta, setVarianteAlerta] = useState("");
 
 
   const handleShowPassword = () => {
@@ -65,10 +70,16 @@ export default function LoginForm() {
 
         }
         else if (data === 300) {
+          setMensajeAlerta("Usuario o contraseña invalida");
+          setVarianteAlerta("error");
+          setMostrarAlerta(true)
           /*usuario no validado*/
 
         }
         else if (!data) {
+          setMensajeAlerta("Usuario o contraseña invalida");
+          setVarianteAlerta("error");
+          setMostrarAlerta(true)
 
         }
         else {
@@ -136,6 +147,8 @@ export default function LoginForm() {
                 ¿Recuperar Contraseña?
               </Link>
             </Stack>
+
+            {mostrarAlerta && <Alerta mensaje={mensajeAlerta} variante={varianteAlerta} />}
 
             <LoadingButton
               fullWidth
