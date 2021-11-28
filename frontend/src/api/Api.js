@@ -383,16 +383,16 @@ async function getProfesores() {
 };
 
 async function crearProfesor(payload) {
-  try {
-      const token = window.localStorage.getItem('token');
-      const resp = await fetch(`${API}/profesores`, {
-          method: "POST",
-          headers: {
-              "Content-Type": "application/json",
-              'Authorization': 'Bearer ' + token
-          },
-          body: JSON.stringify(payload),
-      });
+    try {
+        const token = window.localStorage.getItem('token');
+        const resp = await fetch(`${API}/profesores`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify(payload),
+        });
 
         if (!resp.ok) return -1;
 
@@ -455,7 +455,7 @@ async function obtenerModulos() {
             }
         })
 
-        if (! resp.ok) return -1;
+        if (!resp.ok) return -1;
 
         else if (resp.status === 403) {
             return 403;
@@ -465,13 +465,13 @@ async function obtenerModulos() {
         }
 
         else if (resp.status === 200) {
-           return await resp.json();
+            return await resp.json();
         }
         else {
             return -1;
         }
     }
-    catch(err){
+    catch (err) {
 
     }
 };
@@ -846,6 +846,81 @@ async function obtenerEstudiante(id) {
     }
 };
 
+async function generarCodigo() {
+    try {
+        const token = window.localStorage.getItem('token');
+
+        const resp = await fetch(`${API}/generarCodigoEvento`, {
+            method: 'GET',
+            headers: {
+                "Content-Type": "application/json",
+                'Authorization': 'Bearer ' + token
+            },
+        })
+
+
+        if (resp.status === 403) {
+            return 403;
+        }
+        else if (resp.status === 401) {
+            return 401;
+        }
+        else if (resp.status === 300) {
+            return 300;
+        }
+        else if (resp.status === 200) {
+            const data = await resp.json();
+            return data;
+        }
+        else if (!resp.ok) return -1;
+        else {
+            return -1;
+        }
+    }
+    catch {
+        return -1;
+
+    }
+};
+
+async function agregarEvento(evento) {
+    try {
+        const token = window.localStorage.getItem('token');
+
+        const resp = await fetch(`${API}/crearEvento`, {
+            method: 'POST',
+            headers: {
+                "Content-Type": "application/json",
+                'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify(evento)
+        })
+
+
+        if (resp.status === 403) {
+            return 403;
+        }
+        else if (resp.status === 401) {
+            return 401;
+        }
+        else if (resp.status === 300) {
+            return 300;
+        }
+        else if (resp.status === 200) {
+            const data = await resp.json();
+            return data;
+        }
+        else if (!resp.ok) return -1;
+        else {
+            return -1;
+        }
+    }
+    catch {
+        return -1;
+
+    }
+};
+
 async function eliminarEstudiante(id) {
     try {
         const token = window.localStorage.getItem('token');
@@ -903,6 +978,8 @@ export default {
     actualizarCarreraFacultad,
     actualizarModuloEstudiante,
     obtenerEstudiante,
+    generarCodigo,
+    agregarEvento,
     dbx,
     API
 };

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState} from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import OutlinedInput from '@mui/material/OutlinedInput';
@@ -20,7 +20,8 @@ import Select from '@mui/material/Select';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import IconButton from '@mui/material/IconButton';
 
-import { obtenerModulos } from '../../api/Api';
+import Api, { obtenerModulos } from '../../api/Api';
+import { Tooltip } from '@mui/material';
 
 const tiposRecurrencia = [
   {
@@ -131,21 +132,24 @@ const estadosEvento = [
   },
 ]
 
-export default function NewEventDialog({onClose, onSave, open, professor}) {
+export default function NewEventDialog({ onClose, onSave, open, professor }) {
   const isMounted = useRef(true);
-  const [ error, setError ] = useState(false);
-  const [ loading, setLoading ] = useState(false);
-  const [ courses, setCourses ] = useState([]);
-  const [ selectedCourse, setSelectedCourse ] = useState();
-  const [ recurrencia, setRecurrencia ] = useState(diasSemana[2])
-  const [ tipoRecurrencia, setTipoRecurrencia ] = useState(tiposRecurrencia[0]);
-  const [ startDate, setStartDate ] = useState(null);
-  const [ endDate, setEndDate ] = useState(null);
-  const [ estadoEvento, setEstadoEvento ] = useState(estadosEvento[0]);
-  const [ eventCode, setEventCode ] = useState('');
-  const [ bloqueHorario, setBloqueHorario ] = useState(bloques[0]);
+  const [error, setError] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [courses, setCourses] = useState([]);
+  const [selectedCourse, setSelectedCourse] = useState({ id: -1 });
+  const [recurrencia, setRecurrencia] = useState(diasSemana[2])
+  const [tipoRecurrencia, setTipoRecurrencia] = useState(tiposRecurrencia[0]);
+  const [startDate, setStartDate] = useState(null);
+  const [endDate, setEndDate] = useState(null);
+  const [estadoEvento, setEstadoEvento] = useState(estadosEvento[0]);
+  const [eventCode, setEventCode] = useState('');
+  const [bloqueHorario, setBloqueHorario] = useState(bloques[0]);
 
-  const refNombre = useRef();
+  const [nombreEvento, setNombreEvento] = useState("");
+  const [maximoAsistentes, setMaximoAsistente] = useState("");
+
+
 
   useEffect(() => {
     return () => {
@@ -154,18 +158,17 @@ export default function NewEventDialog({onClose, onSave, open, professor}) {
   }, []);
 
   const fetchModules = useCallback(
-    async function() {
-      if(! professor) return
+    async function () {
+      if (!professor) return
       // obtener todos los módulos
       const modulosAux = await obtenerModulos();
       // filtrar los módulos del profesor actual
-      const filtered = modulosAux.filter( m => m.id_Profesor === professor.id)
+      const filtered = modulosAux.filter(m => m.id_Profesor === professor.id)
 
-      if(isMounted.current) {
+      if (isMounted.current) {
         setCourses(filtered);
-        setSelectedCourse(filtered[0]);
       }
-    },[professor]
+    }, [professor]
   );
 
   useEffect(() => {
@@ -176,29 +179,76 @@ export default function NewEventDialog({onClose, onSave, open, professor}) {
     onClose();
   };
 
-  const handleSave = async() => {
-    if( refNombre.current.value.length === 0 )
-      return setError("Todos los campos son obligatorios.");
-    const regex = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+  const handleSave = async () => {
+    if (nombreEvento.length === 0) {
+      return setError("Nombre del evento incompleto");
+    }
+    else if (eventCode.length === 0) {
+      return setError("Código evento incompleto");
+    }
+    else if (Number.isInteger(maximoAsistentes)) {
+      return setError("El numero de asistentes debe ser un numero");
+    }
+    else if (selectedCourse.id === -1) {
+      return setError("Seleccionar Curso");
+    }
+    else {
+      let fechaActual = new Date();
+      let fechaInicioRecurrencia = "";
+      let fechaFinRecurrencia = "";
 
-    const evento = {
-      id: '',
-      nombre: refNombre.current.value,
-      // modulo: ,
-      // eventos: [],
-    };
+      if (startDate) {
+        fechaInicioRecurrencia = startDate.getDate() + "/" + (startDate.getMonth() + 1) + "/" + startDate.getFullYear();
+      }
 
-    // const res = await crearProfesor(profesor);
-    // if (res === 403 || res === 401) {
-    //   window.localStorage.removeItem("token");
-    //   window.localStorage.removeItem("user");
-    //   window.location.href = "/login"
-    // }
+      if (endDate) {
+        fechaFinRecurrencia = endDate.getDate() + "/" + (endDate.getMonth() + 1) + "/" + endDate.getFullYear();
 
-    // profesor.id = res.id;
-    // setLoading(false);
-    // delete profesor.contrasena;
-    // onSave(profesor);
+      }
+
+      let recurenciaVariable = ""
+      if (tipoRecurrencia.label === "No recurrente") {
+
+      }
+      else {
+        recurenciaVariable = recurrencia.label;
+      }
+
+      const evento = {
+        nombre: nombreEvento,
+        bloque: bloqueHorario.value,
+        fecha: fechaInicioRecurrencia,
+        fecha_creacion: fechaActual.getDate() + "/" + (fechaActual.getMonth() + 1) + "/" + fechaActual.getFullYear(),
+        modulo: selectedCourse.id,
+        nombre: nombreEvento,
+        profesor: professor.id,
+        codigo: eventCode,
+        estado: "DISPONIBLE",
+        fecha_fin_recurrencia: fechaFinRecurrencia,
+        fecha_inicio_recurrencia: fechaInicioRecurrencia,
+        maximo_asistentes: maximoAsistentes,
+        sala: "",
+        tipoRecurencia: tipoRecurrencia.label,
+        recurrencia: recurenciaVariable,
+      };
+      const res = await Api.agregarEvento(evento);
+      if (res === 403 || res === 401) {
+        window.localStorage.removeItem("token");
+        window.localStorage.removeItem("user");
+        window.location.href = "/login"
+
+      }
+      else if (res === 300 || res === -1) {
+        return setError("Error al guardar los datos");
+
+      }
+      else {
+        onClose();
+
+
+      }
+
+    }
 
   }
 
@@ -207,50 +257,56 @@ export default function NewEventDialog({onClose, onSave, open, professor}) {
     setCourses(data);
   }
 
-  const handleRecurrencia = ({target}) => {
-    const option = diasSemana.find( r => r.value === target.value );
+  const handleRecurrencia = ({ target }) => {
+    const option = diasSemana.find(r => r.value === target.value);
     setRecurrencia(option);
   }
 
-  const handleTipoRecurrencia = ({target}) => {
-    const option = tiposRecurrencia.find( r => r.value === target.value );
+  const handleNombreEvento = ({ target }) => {
+    setNombreEvento(target.value);
+  }
+
+  const handleMaximoAsistentes = ({ target }) => {
+    setMaximoAsistente(target.value);
+
+
+
+  }
+
+  const handleTipoRecurrencia = ({ target }) => {
+    const option = tiposRecurrencia.find(r => r.value === target.value);
     setTipoRecurrencia(option);
   }
 
-  const handleEstado = ({target}) => {
-    const newState = estadosEvento.find( e => e.value === target.value );
+  const handleEstado = ({ target }) => {
+    const newState = estadosEvento.find(e => e.value === target.value);
     setEstadoEvento(newState);
   }
 
-  const handleCourse = ({target}) => {
-    const newCourse = courses.filter( c => c.id === target.value.id )
-    setSelectedCourse(newCourse);
+  const handleCourse = ({ target }) => {
+    setSelectedCourse(target.value);
   }
 
   const handleCode = ({ target }) => {
     setEventCode(target.value);
   }
 
-  const handleBloqueHorario = ({target}) => {
-    const option = bloques.find( b => b.value === target.value );
+  const handleBloqueHorario = ({ target }) => {
+    const option = bloques.find(b => b.value === target.value);
     setBloqueHorario(option);
   }
 
   function generateEventCode() {
-    // console.log("selectedCourse", selectedCourse)
-    // let code;
-    // const now = new Date().toISOString().slice(0, -5);
-    // code = selectedCourse.nombre
-    //   .trim()
-    //   .replaceAll(' ', '_')
-    //   .replaceAll('T', '_') + ('_') + now;
-    // console.log("now", now)
-    // console.log("cod", code)
+    Api.generarCodigo().then((respuesta) => {
+      setEventCode(respuesta.codigo)
+    }).catch(() => {
+
+    })
 
   }
 
-  return(
-    <Dialog open={open} onClose={ onClose }>
+  return (
+    <Dialog open={open} onClose={onClose}>
       <DialogTitle>Nuevo Evento</DialogTitle>
       <DialogContent>
 
@@ -263,8 +319,8 @@ export default function NewEventDialog({onClose, onSave, open, professor}) {
               fullWidth
               label="Nombre"
               margin="dense"
-              onChange={ () => setError("") }
-              inputRef={ refNombre }
+              value={nombreEvento}
+              onChange={handleNombreEvento}
               required
               type="text"
             />
@@ -280,9 +336,12 @@ export default function NewEventDialog({onClose, onSave, open, professor}) {
               InputProps={{
                 endAdornment: (
                   <InputAdornment position="end">
-                    <IconButton onClick={generateEventCode} edge="end">
-                      <AutoAwesomeIcon />
-                    </IconButton>
+                    <Tooltip title="Generar Código">
+                      <IconButton onClick={generateEventCode} edge="end">
+                        <AutoAwesomeIcon />
+                      </IconButton>
+                    </Tooltip>
+
                   </InputAdornment>
                 )
               }}
@@ -291,34 +350,39 @@ export default function NewEventDialog({onClose, onSave, open, professor}) {
 
           </Grid>
 
-          { courses.length > 0 && selectedCourse && (
+          {courses.length > 0 && (
             <Grid mt={1} item xs={6}>
-              <TextField
-                fullWidth
-                select
-                label="Curso"
-                InputLabelProps={{ shrink: true }}
-                value={selectedCourse.value}
-                onChange={handleCourse}
-                SelectProps={{
-                  native: true,
-                }}
-              >
-                {courses.map((option) => (
-                  <option key={option.id} value={option.id}>
-                    {option.nombre}
-                  </option>
-                ))}
-              </TextField>
+              <FormControl fullWidth>
+                <InputLabel>Curso</InputLabel>
+                <Select
+                  value={selectedCourse}
+                  label="Curso"
+                  onChange={handleCourse}
+                >
+                  <MenuItem
+                    value={{ id: -1 }}
+                  >
+                    Seleccionar Curso
+                  </MenuItem>
+                  {courses.map((option) => (
+                    <MenuItem
+                      key={option.id}
+                      value={option}
+                    >
+                      {option.nombre}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
             </Grid>
-          ) }
+          )}
 
           <Grid item xs={6}>
             <TextField
-              autoFocus
               label="Máximo de asistentes"
               margin="dense"
-              onChange={ () => setError("") }
+              value={maximoAsistentes}
+              onChange={handleMaximoAsistentes}
               required
               type="number"
             />
@@ -390,7 +454,8 @@ export default function NewEventDialog({onClose, onSave, open, professor}) {
           <Grid item xs={6}>
             <LocalizationProvider dateAdapter={AdapterDateFns}>
               <DatePicker
-                label="Fecha inicio"
+                label="Fecha Inicio"
+                minDate={new Date()}
                 value={startDate}
                 onChange={(newValue) => {
                   setStartDate(newValue);
@@ -404,7 +469,8 @@ export default function NewEventDialog({onClose, onSave, open, professor}) {
           <Grid item xs={6}>
             <LocalizationProvider dateAdapter={AdapterDateFns}>
               <DatePicker
-                label="Fecha término"
+                label="Fecha Término"
+                minDate={new Date()}
                 value={endDate}
                 disabled={tipoRecurrencia.value === "NO_RECURRENTE"}
                 onChange={(newValue) => {
@@ -419,20 +485,20 @@ export default function NewEventDialog({onClose, onSave, open, professor}) {
         </Grid>
 
       </DialogContent>
-      { error && (
+      {error && (
         <Box mb={2} width="100%">
-          <Alert severity="error">{ error }</Alert>
+          <Alert severity="error">{error}</Alert>
         </Box>
-      ) }
+      )}
       <DialogActions>
 
-        <Button disabled={ loading } onClick={ handleCancel }>
+        <Button disabled={loading} onClick={handleCancel}>
           Cancelar
         </Button>
         <Button
           color="primary"
-          disabled={ loading }
-          onClick={ handleSave }
+          disabled={loading}
+          onClick={handleSave}
           variant="contained">
           Aceptar
         </Button>

@@ -6,6 +6,8 @@ import db
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, JWTManager
 from flask_mail import Mail,  Message
 
+from random import randint
+
 from io import StringIO
 import string
 import random
@@ -386,6 +388,61 @@ def modificarFacuCarreraEstudiante():
             'carrera': ObjectId(request.json['carrera'])
         }})
         return jsonify({'message': 'Estudiante Actualizado'}), 200
+
+@app.route('/generarCodigoEvento', methods=['GET'])
+@jwt_required()
+def generarCodigoEvento():
+    codigo = ''
+
+    while True:
+
+        lista = []
+        
+        for x in range(8):
+            a = randint(0,9)
+            lista.append(str(a)) #Estas 2 líneas se pueden juntar en: lista.append(str(randint(0,9)))
+            
+        for x in range(8):
+            codigo = codigo + lista[x]
+
+        codigoExiste = db.db.eventos.find_one({"codigo": codigo})
+
+        if codigoExiste is None:
+            break
+
+
+    return jsonify({'codigo': codigo}), 200
+
+
+@app.route('/crearEvento', methods=['POST'])
+@jwt_required()
+def crearEvento():
+    eventoExiste = db.db.eventos.find_one({"codigo": request.json['codigo']})
+
+    if eventoExiste is None:
+        id = db.db.eventos.insert({
+            'nombre': request.json['nombre'],
+            'bloque': request.json['bloque'],
+            'fecha': request.json['fecha'],
+            'fecha_creacion': request.json['fecha_creacion'],
+            'modulo': ObjectId(request.json['modulo']),
+            'nombre': request.json['nombre'],
+            'profesor': ObjectId(request.json['profesor']),
+            'codigo': request.json['codigo'],
+            'estado': request.json['estado'],
+            'fecha_fin_recurrencia': request.json['fecha_fin_recurrencia'],
+            'fecha_inicio_recurrencia': request.json['fecha_inicio_recurrencia'],
+            'maximo_asistentes': request.json['maximo_asistentes'],
+            'sala': request.json['sala'],
+            'asistentes': [],
+            'tipoRecurencia': request.json['tipoRecurencia'],
+            'recurrencia': request.json['recurrencia'],
+        })
+        return jsonify({'message': 'Evento agregado con éxito'}), 200
+        
+    else:
+        return jsonify({'message': 'Codigo ya existe'}), 300
+        
 
 @app.route('/actualizarModuloEstudiante', methods=['POST'])
 @jwt_required()

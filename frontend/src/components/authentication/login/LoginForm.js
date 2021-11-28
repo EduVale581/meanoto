@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { Form, Formik } from 'formik';
 import { Icon } from '@iconify/react';
@@ -32,6 +32,10 @@ export default function LoginForm() {
   const handleShowPassword = () => {
     setShowPassword((show) => !show);
   };
+
+  useEffect(() => {
+    localStorage.clear();
+  }, [])
 
   return (
     <Formik
