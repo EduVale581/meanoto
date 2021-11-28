@@ -37,6 +37,12 @@ const sidebarConfig = [
     icon: <GroupIcon />,
     usuarios: ["ADMIN", "OPERATIVO"]
   },
+  {
+    title: 'estudiantes',
+    path: '/dashboard/estudiantes',
+    icon: <GroupIcon />,
+    usuarios: ["ADMIN", "OPERATIVO"]
+  },
 
 ];
 

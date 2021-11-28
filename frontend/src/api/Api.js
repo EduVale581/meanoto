@@ -216,6 +216,45 @@ async function getModulos(setModulosArreglo, setModulosMostrar, setModulosServid
     }
 };
 
+async function getModulos2() {
+    try {
+        const token = window.localStorage.getItem('token');
+
+        const resp = await fetch(`${API}/modulos`, {
+            method: 'GET',
+            headers: {
+                "Content-Type": "application/json",
+                'Authorization': 'Bearer ' + token
+            }
+        })
+
+
+        if (resp.status === 403) {
+            return 403;
+        }
+        else if (resp.status === 401) {
+            return 401;
+        }
+        else if (resp.status === 200) {
+            const data = await resp.json();
+            return data;
+        }
+        else if (!resp.ok) return -1;
+        else {
+            return -1;
+        }
+
+
+
+    }
+    catch {
+        return -1;
+
+    }
+
+
+};
+
 async function crearNuevoModulo(nombre, facultadSeleccionadaModal, nro_alumnos, carreraSeleccionadaModal, setModulosArreglo, setModulosMostrar, setModulosServidor, facultadSeleccionadaFiltro, carreraSeleccionadaFiltro, setLoadingCrearModulo, setOpenCrearModulo) {
     const token = window.localStorage.getItem('token');
 
@@ -296,6 +335,10 @@ async function guardarCantidadEstudiantes(id, cantEstudiantes, profesorSeleccion
             return data;
 
         }
+        else if (resp.status === 300) {
+            return 300;
+
+        }
         else {
             return -1;
         }
@@ -367,6 +410,10 @@ async function crearProfesor(payload) {
         else if (resp.status === 200) {
             const data = await resp.json();
             return data;
+        }
+        else if (resp.status === 300) {
+            return 300;
+
         }
         else {
             return -1;
@@ -459,6 +506,10 @@ async function eliminarModulo(id, setLoadingEliminar, setModulosArreglo, setModu
             return data;
 
         }
+        else if (resp.status === 300) {
+            return 300;
+
+        }
         else {
             return -1;
         }
@@ -476,6 +527,362 @@ export {
     obtenerModulos
 };
 
+async function enviarContrasena(rut, contrasena, contrasenaMD5) {
+    try {
+
+        const resp = await fetch(`${API}/contrasenaProvisoria`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ rut: rut, contrasena: contrasena, contrasenaMD5: contrasenaMD5 }),
+        });
+
+
+
+        if (resp.status === 403) {
+            return 403;
+        }
+        else if (resp.status === 401) {
+            return 401;
+        }
+        else if (resp.status === 200) {
+            const data = await resp.json();
+            return data;
+
+        }
+        else if (resp.status === 300) {
+            return 300;
+
+        }
+        else if (!resp.ok) return -1
+        else {
+            return -1;
+        }
+
+    }
+    catch {
+        return -1;
+    }
+
+
+
+};
+
+async function cambiarContrasena(id, provisoria, contrasena) {
+    try {
+
+        const resp = await fetch(`${API}/actualizarContra`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ id: id, provisoria: provisoria, contrasena: contrasena }),
+        });
+
+
+
+        if (resp.status === 403) {
+            return 403;
+        }
+        else if (resp.status === 401) {
+            return 401;
+        }
+        else if (resp.status === 200) {
+            const data = await resp.json();
+            return data;
+
+        }
+        else if (resp.status === 300) {
+            return 300;
+
+        }
+        else if (!resp.ok) return -1
+        else {
+            return -1;
+        }
+
+    }
+    catch {
+        return -1;
+    }
+
+
+
+};
+
+async function getEstudiantes() {
+    try {
+        const token = window.localStorage.getItem('token');
+
+        const resp = await fetch(`${API}/estudiantes`, {
+            method: 'GET',
+            headers: {
+                "Content-Type": "application/json",
+                'Authorization': 'Bearer ' + token
+            }
+        })
+
+
+        if (resp.status === 403) {
+            return 403;
+        }
+        else if (resp.status === 401) {
+            return 401;
+        }
+        else if (resp.status === 300) {
+            return 300;
+        }
+        else if (resp.status === 200) {
+            const data = await resp.json();
+            return data;
+        }
+        else if (!resp.ok) return -1;
+        else {
+            return -1;
+        }
+
+
+
+    }
+    catch {
+        return -1;
+
+    }
+
+
+};
+
+async function getFacultades() {
+    try {
+        const token = window.localStorage.getItem('token');
+
+        const resp = await fetch(`${API}/facultades`, {
+            method: 'GET',
+            headers: {
+                "Content-Type": "application/json",
+                'Authorization': 'Bearer ' + token
+            }
+        })
+
+
+        if (resp.status === 403) {
+            return 403;
+        }
+        else if (resp.status === 401) {
+            return 401;
+        }
+        else if (resp.status === 300) {
+            return 300;
+        }
+        else if (resp.status === 200) {
+            const data = await resp.json();
+            return data;
+        }
+        else if (!resp.ok) return -1;
+        else {
+            return -1;
+        }
+
+
+
+    }
+    catch {
+        return -1;
+
+    }
+
+
+};
+
+async function validarEstudiante(id, validado) {
+    try {
+        const token = window.localStorage.getItem('token');
+
+        const resp = await fetch(`${API}/validarEstudiante`, {
+            method: 'POST',
+            headers: {
+                "Content-Type": "application/json",
+                'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify({ id: id, validado: validado })
+        })
+
+
+        if (resp.status === 403) {
+            return 403;
+        }
+        else if (resp.status === 401) {
+            return 401;
+        }
+        else if (resp.status === 300) {
+            return 300;
+        }
+        else if (resp.status === 200) {
+            const data = await resp.json();
+            return data;
+        }
+        else if (!resp.ok) return -1;
+        else {
+            return -1;
+        }
+    }
+    catch {
+        return -1;
+
+    }
+};
+
+async function actualizarCarreraFacultad(id, facultad, carrera) {
+    try {
+        const token = window.localStorage.getItem('token');
+
+        const resp = await fetch(`${API}/modificarCarreraFacultadEstudiante`, {
+            method: 'POST',
+            headers: {
+                "Content-Type": "application/json",
+                'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify({ id: id, facultad: facultad, carrera: carrera })
+        })
+
+
+        if (resp.status === 403) {
+            return 403;
+        }
+        else if (resp.status === 401) {
+            return 401;
+        }
+        else if (resp.status === 300) {
+            return 300;
+        }
+        else if (resp.status === 200) {
+            const data = await resp.json();
+            return data;
+        }
+        else if (!resp.ok) return -1;
+        else {
+            return -1;
+        }
+    }
+    catch {
+        return -1;
+
+    }
+};
+
+async function actualizarModuloEstudiante(id, modulos) {
+    try {
+        const token = window.localStorage.getItem('token');
+
+        const resp = await fetch(`${API}/actualizarModuloEstudiante`, {
+            method: 'POST',
+            headers: {
+                "Content-Type": "application/json",
+                'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify({ id: id, modulos: modulos })
+        })
+
+
+        if (resp.status === 403) {
+            return 403;
+        }
+        else if (resp.status === 401) {
+            return 401;
+        }
+        else if (resp.status === 300) {
+            return 300;
+        }
+        else if (resp.status === 200) {
+            const data = await resp.json();
+            return data;
+        }
+        else if (!resp.ok) return -1;
+        else {
+            return -1;
+        }
+    }
+    catch {
+        return -1;
+
+    }
+};
+
+async function obtenerEstudiante(id) {
+    try {
+        const token = window.localStorage.getItem('token');
+
+        const resp = await fetch(`${API}/estudiantes/${id}`, {
+            method: 'GET',
+            headers: {
+                "Content-Type": "application/json",
+                'Authorization': 'Bearer ' + token
+            },
+        })
+
+
+        if (resp.status === 403) {
+            return 403;
+        }
+        else if (resp.status === 401) {
+            return 401;
+        }
+        else if (resp.status === 300) {
+            return 300;
+        }
+        else if (resp.status === 200) {
+            const data = await resp.json();
+            return data;
+        }
+        else if (!resp.ok) return -1;
+        else {
+            return -1;
+        }
+    }
+    catch {
+        return -1;
+
+    }
+};
+
+async function eliminarEstudiante(id) {
+    try {
+        const token = window.localStorage.getItem('token');
+
+        const resp = await fetch(`${API}/estudiantes/${id}`, {
+            method: "DELETE",
+            headers: {
+                "Content-Type": "application/json",
+                'Authorization': 'Bearer ' + token
+            },
+        });
+
+
+        if (resp.status === 403) {
+            return 403;
+        }
+        else if (resp.status === 401) {
+            return 401;
+        }
+        else if (resp.status === 300) {
+            return 300;
+        }
+        else if (resp.status === 200) {
+            const data = await resp.json();
+            return data;
+        }
+        else if (!resp.ok) return -1;
+        else {
+            return -1;
+        }
+    }
+    catch {
+        return -1;
+
+    }
+};
+
 export default {
     cargarUsuario,
     obtenerToken,
@@ -486,6 +893,16 @@ export default {
     eliminarModulo,
     registroEstudiante,
     verificarTexto,
+    enviarContrasena,
+    cambiarContrasena,
+    getEstudiantes,
+    validarEstudiante,
+    eliminarEstudiante,
+    getFacultades,
+    getModulos2,
+    actualizarCarreraFacultad,
+    actualizarModuloEstudiante,
+    obtenerEstudiante,
     dbx,
     API
 };

@@ -11,7 +11,9 @@ import Eventos from './pages/Eventos';
 import Salas from './pages/Salas';
 import Modulos from './pages/Modulos';
 import Profesores from './pages/Profesores';
+import Estudiantes from './pages/Estudiantes';
 import { UsuarioProvider } from './context/usuarioContext';
+import RecuperarContrasena from './pages/RecuperarContrasena';
 
 // ----------------------------------------------------------------------
 
@@ -28,6 +30,7 @@ export default function Router() {
         { path: 'sala', element: <Salas /> },
         { path: 'modulo', element: <Modulos /> },
         { path: 'profesores', element: <Profesores /> },
+        { path: 'estudiantes', element: <Estudiantes /> },
       ]
     },
     {
@@ -37,6 +40,7 @@ export default function Router() {
         { path: 'login', element: <Login /> },
         { path: 'register', element: <Register /> },
         { path: '404', element: <NotFound /> },
+        { path: 'recuperar', element: <RecuperarContrasena /> },
         { path: '/', element: <Navigate to="/dashboard" /> },
         { path: '*', element: <Navigate to="/404" /> }
       ]

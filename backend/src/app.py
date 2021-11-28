@@ -7,6 +7,9 @@ from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identi
 from flask_mail import Mail,  Message
 
 from io import StringIO
+import string
+import random
+import hashlib
 
 import dropbox
 
@@ -38,6 +41,20 @@ jwt = JWTManager(app)
 mail = Mail(app)
 dbx = dropbox.Dropbox("tqNg1q6lWygAAAAAAAAAARN-TPPDgpDCV18QtmdhiG_61Xk3zZFQwFPvKFjv5FdU")
 CORS(app)
+
+## characters to generate password from
+characters = list(string.ascii_letters + string.digits)
+
+def generate_random_password(length):
+    random.shuffle(characters)
+    ## picking random characters from the list
+    password = []
+    for i in range(length):
+        password.append(random.choice(characters))
+    random.shuffle(password)
+    mostrar = "".join(password)
+
+    return mostrar
 
 def obtenerTextoPDF(numMatricula):
     dbx.files_download_to_file("CertificadosAlumnoRegular/"+numMatricula+".pdf", "/CertificadosAlumnoRegular/"+numMatricula+".pdf")
@@ -175,7 +192,6 @@ def getProfesores():
         })
     return jsonify(profesores), 200
 
-
 @app.route('/profesores', methods=['POST'])
 @jwt_required()
 def agregarNuevoProfesor():
@@ -199,6 +215,195 @@ def agregarNuevoProfesor():
 def eliminarProfesor(id):
     db.db.profesores.delete_one({'_id': ObjectId(id)})
     return jsonify({'message': 'Profesor Eliminado'}), 200
+
+@app.route('/facultades', methods=['GET'])
+@jwt_required()
+def getFacultades():
+    facultades = []
+    for doc in db.db.facultades.find():
+        carreras = doc['carreras']
+        carrerrasArreglo = []
+        for doc2 in carreras:
+            carrera = db.db.carreras.find_one({"_id": ObjectId(doc2)})
+            if carrera is not None:
+                carrerrasArreglo.append({'nombre': carrera['nombre'], 'id':doc2})
+
+        facultades.append({
+            'id': doc['_id'],
+            'nombre': doc['nombre'],
+            'carreras': carrerrasArreglo,
+        })
+
+    return jsonify(facultades), 200
+
+@app.route('/estudiantes', methods=['GET'])
+@jwt_required()
+def getEstudiantes():
+    estudiantes = []
+    for doc in db.db.estudiantes.find():
+        modulos = doc['modulos']
+        carrera = ""
+        facultad = ""
+        modulosArreglo = []
+        carrera = db.db.carreras.find_one({"_id": ObjectId(doc['carrera'])})
+        facultad = db.db.facultades.find_one({"_id": ObjectId(doc['facultad'])})
+
+        for doc2 in  modulos:
+            modulo = db.db.modulos.find_one({"_id": ObjectId(doc2)})
+            if modulo is not None:
+                profesor = db.db.profesores.find_one({"_id": ObjectId(modulo['profesor'])})
+                profesorNombre = ""
+                if profesor is None:
+                    profesorNombre = ""
+                else:
+                    profesorNombre = profesor['nombre'] + " " + profesor['apellido']
+                modulosArreglo.append({
+                    'nombre': modulo['nombre'],
+                    'id': modulo['_id'],
+                    'id_profesor': modulo['profesor'],
+                    'profesor':profesorNombre
+                })
+
+        if carrera is None:
+            carrera = ""
+        else:
+            carrera = carrera['nombre']
+
+        if facultad is None:
+            facultad = ""
+        else:
+            facultad = facultad['nombre']
+
+        estudiantes.append({
+            'nombreEstudiante': doc['nombre']+' ' + doc['apellido'],
+            'id': doc['_id'],
+            'apellido': doc['apellido'],
+            'nombre': doc['nombre'],
+            'rut': doc['rut'],
+            'correo': doc['correo'],
+            'carrera':carrera,
+            'facultad':facultad,
+            'numMatricula': doc['matricula'],
+            'archivo': doc['url_doc_alumno_reg'],
+            'validado': doc['validado'],
+            'modulos':modulosArreglo
+        })
+
+    return jsonify(estudiantes), 200
+
+@app.route('/estudiantes/<id>', methods=['DELETE'])
+@jwt_required()
+def eliminarEstudiante(id):
+    db.db.estudiantes.delete_one({'_id': ObjectId(id)})
+    db.db.usuarios.delete_one({'refId': ObjectId(id)})
+    return jsonify({'message': 'Estudiante Eliminado'}), 200
+
+@app.route('/estudiantes/<id>', methods=['GET'])
+@jwt_required()
+def obtenerEstudiante(id):
+    estudianteExiste = db.db.estudiantes.find_one({"_id": ObjectId(id)})
+
+    if estudianteExiste is None:
+        return jsonify({'message': 'Estudiante no existe'}), 300
+    else:
+        modulos = estudianteExiste['modulos']
+        carrera = ""
+        facultad = ""
+        modulosArreglo = []
+        carrera = db.db.carreras.find_one({"_id": ObjectId(estudianteExiste['carrera'])})
+        facultad = db.db.facultades.find_one({"_id": ObjectId(estudianteExiste['facultad'])})
+
+        for doc2 in  modulos:
+            modulo = db.db.modulos.find_one({"_id": ObjectId(doc2)})
+            if modulo is not None:
+                profesor = db.db.profesores.find_one({"_id": ObjectId(modulo['profesor'])})
+                profesorNombre = ""
+                if profesor is None:
+                    profesorNombre = ""
+                else:
+                    profesorNombre = profesor['nombre'] + " " + profesor['apellido']
+                modulosArreglo.append({
+                    'nombre': modulo['nombre'],
+                    'id': modulo['_id'],
+                    'id_profesor': modulo['profesor'],
+                    'profesor':profesorNombre
+                })
+
+        if carrera is None:
+            carrera = ""
+        else:
+            carrera = carrera['nombre']
+
+        if facultad is None:
+            facultad = ""
+        else:
+            facultad = facultad['nombre']
+
+        return jsonify({
+            'nombreEstudiante': estudianteExiste['nombre']+' ' + estudianteExiste['apellido'],
+            'id': estudianteExiste['_id'],
+            'apellido': estudianteExiste['apellido'],
+            'nombre': estudianteExiste['nombre'],
+            'rut': estudianteExiste['rut'],
+            'correo': estudianteExiste['correo'],
+            'carrera':carrera,
+            'facultad':facultad,
+            'numMatricula': estudianteExiste['matricula'],
+            'archivo': estudianteExiste['url_doc_alumno_reg'],
+            'validado': estudianteExiste['validado'],
+            'modulos':modulosArreglo
+
+        }), 200
+
+@app.route('/validarEstudiante', methods=['POST'])
+@jwt_required()
+def validarEstudiante():
+    estudianteExiste = db.db.estudiantes.find_one({"_id": ObjectId(request.json['id'])})
+
+    if estudianteExiste is None:
+
+        return jsonify({'message': 'Estudiante no existe'}), 300
+    else:
+        db.db.estudiantes.update_one({'_id': ObjectId(request.json['id'])}, {"$set": {
+            'validado': request.json['validado']
+        }})
+        db.db.usuarios.update_one({'refId': ObjectId(request.json['id'])}, {"$set": {
+            'validado': request.json['validado']
+        }})
+        return jsonify({'message': 'Estudiante Actualizado'}), 200
+
+@app.route('/modificarCarreraFacultadEstudiante', methods=['POST'])
+@jwt_required()
+def modificarFacuCarreraEstudiante():
+    estudianteExiste = db.db.estudiantes.find_one({"_id": ObjectId(request.json['id'])})
+
+    if estudianteExiste is None:
+
+        return jsonify({'message': 'Estudiante no existe'}), 300
+    else:
+        db.db.estudiantes.update_one({'_id': ObjectId(request.json['id'])}, {"$set": {
+            'facultad': ObjectId(request.json['facultad']),
+            'carrera': ObjectId(request.json['carrera'])
+        }})
+        return jsonify({'message': 'Estudiante Actualizado'}), 200
+
+@app.route('/actualizarModuloEstudiante', methods=['POST'])
+@jwt_required()
+def actualizarModuloEstudiante():
+    modulosEstudiante = request.json['modulos']
+    modulosAgregar = []
+    estudianteExiste = db.db.estudiantes.find_one({"_id": ObjectId(request.json['id'])})
+
+    if estudianteExiste is None:
+
+        return jsonify({'message': 'Estudiante no existe'}), 300
+    else:
+        for modulo in modulosEstudiante:
+            modulosAgregar.append(ObjectId(modulo))
+        db.db.estudiantes.update_one({'_id': ObjectId(request.json['id'])}, {"$set": {
+            'modulos': modulosAgregar
+        }})
+        return jsonify({'message': 'Estudiante Actualizado'}), 200
 
 @app.route('/usuario', methods=['POST'])
 @jwt_required()
@@ -262,6 +467,49 @@ def iniciarRegistro():
                 body="Cuenta creada, Falta verificar datos."
             )
         return jsonify({'message': 'Estudiante ingresado con éxito'}), 200
+
+@app.route('/contrasenaProvisoria', methods=['POST'])
+def contrasenaProvisoria():
+    usuario = db.db.usuarios.find_one({"rut": request.json['rut']})
+
+    if usuario is None:
+        return jsonify({'message': 'Error al obtener usuario'}), 300
+    else:
+
+        db.db.usuarios.update_one({'_id': ObjectId(usuario['_id'])}, {"$set": {
+        'contrasena': request.json['contrasenaMD5']
+        }})
+        msg = mail.send_message(
+            'Recuperación de Contraseña',
+            sender='meanoto2021@gmail.com',
+            recipients=[usuario['correo']],
+            body="La nueva contraseña es: "+request.json['contrasena']
+        )
+        return jsonify({'message': usuario['_id']}), 200
+
+@app.route('/actualizarContra', methods=['POST'])
+def actualizarContra():
+    usuario = db.db.usuarios.find_one({"_id": ObjectId(request.json['id'])}, {"contrasena": request.json['provisoria']})
+
+    if usuario is None:
+        return jsonify({'message': 'Error al obtener usuario'}), 300
+    else:
+
+        db.db.usuarios.update_one({'_id': ObjectId(usuario['_id'])}, {"$set": {
+        'contrasena': request.json['contrasena']
+        }})
+        usuario2= db.db.usuarios.find_one({"_id": ObjectId(request.json['id'])})
+        if usuario2 is None:
+            return jsonify({'message': "OK"}), 200
+        else:
+
+            msg = mail.send_message(
+                'Recuperación de Contraseña',
+                sender='meanoto2021@gmail.com',
+                recipients=[usuario2['correo']],
+                body="Contraseña cambiada con éxito"
+            )
+            return jsonify({'message': "OK"}), 200
 
 
 
