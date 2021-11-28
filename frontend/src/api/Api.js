@@ -469,7 +469,12 @@ async function eliminarModulo(id, setLoadingEliminar, setModulosArreglo, setModu
     }
 };
 
-export { getProfesores, crearProfesor, eliminarProfesor, obtenerModulos };
+export {
+    getProfesores,
+    crearProfesor,
+    eliminarProfesor,
+    obtenerModulos
+};
 
 export default {
     cargarUsuario,

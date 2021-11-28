@@ -39,7 +39,6 @@ mail = Mail(app)
 dbx = dropbox.Dropbox("tqNg1q6lWygAAAAAAAAAARN-TPPDgpDCV18QtmdhiG_61Xk3zZFQwFPvKFjv5FdU")
 CORS(app)
 
-
 def obtenerTextoPDF(numMatricula):
     dbx.files_download_to_file("CertificadosAlumnoRegular/"+numMatricula+".pdf", "/CertificadosAlumnoRegular/"+numMatricula+".pdf")
     output_string = StringIO()
@@ -76,8 +75,6 @@ def create_token():
     # create a new token with the user id inside
     access_token = create_access_token(identity=user['_id'], expires_delta=False)
     return jsonify({ "token": access_token, "user_id": user['_id'] }),200
-
-
 
 @app.route('/')
 def flask_mongodb_atlas():
