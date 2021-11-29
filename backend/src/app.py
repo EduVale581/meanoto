@@ -413,6 +413,76 @@ def generarCodigoEvento():
 
     return jsonify({'codigo': codigo}), 200
 
+@app.route('/salas', methods=['GET'])
+@jwt_required()
+def obtenerSalas():
+    salas = []
+    for doc in db.db.salas.find():
+        facultad = db.db.facultades.find_one({"_id": doc['facultad']})
+        nombreFacultad = ""
+        if facultad is not None:
+            nombreFacultad = facultad['nombre']
+
+        salas.append({
+            'id': doc['_id'],
+            'nombre': doc['nombre'],
+            'aforo': doc['aforo'],
+            'estado': doc['estado'],
+            'id_Facultad': doc['facultad'],
+            'facultad': nombreFacultad,
+            'aforoActual':doc['aforoActual'],
+            'metrosCuadrados':doc['metrosCuadrados']
+        })
+    return jsonify(salas), 200
+
+@app.route('/salas', methods=['POST'])
+@jwt_required()
+def crearSala():
+    salaExiste = db.db.salas.find_one({"nombre": request.json['nombre'], "facultad": ObjectId(request.json['facultad'])})
+
+    if salaExiste is None:
+        id = db.db.salas.insert({
+            'nombre': request.json['nombre'],
+            'aforo': request.json['aforo'],
+            'facultad': ObjectId(request.json['facultad']),
+            'estado': request.json['estado'],
+            'aforoActual': request.json['aforoActual'],
+            'metrosCuadrados': request.json['metrosCuadrados']
+        })
+        return jsonify({'message': 'Sala agregada con éxito'}), 200
+        
+    else:
+        return jsonify({'message': 'Sala ya existe'}), 300
+
+@app.route('/salas/<id>', methods=['DELETE'])
+@jwt_required()
+def eliminarSala(id):
+    salaExiste = db.db.salas.find_one({"_id": ObjectId(id)})
+
+    if salaExiste is None:
+        
+        return jsonify({'message': 'Sala no existe'}), 300
+        
+    else:
+        db.db.salas.delete_one({'_id': ObjectId(id)})
+        return jsonify({'message': 'Módulo Eliminado'}), 200
+
+@app.route('/actualizarSala', methods=['POST'])
+@jwt_required()
+def actulizarSala():
+    salaExiste = db.db.salas.find_one({"_id": ObjectId(request.json['id'])})
+
+    if salaExiste is None:
+        return jsonify({'message': 'Sala no existe'}), 300
+    else:
+        db.db.salas.update_one({'_id': ObjectId(request.json['id'])}, {"$set": {
+            'nombre': request.json['nombre'],
+            'aforo':request.json['aforo'],
+            'facultad':ObjectId(request.json['facultad']),
+            'metrosCuadrados':request.json['metrosCuadrados'],
+            'estado':request.json['estado']
+        }})
+        return jsonify({'message': 'Sala Actualizado'}), 200      
 
 @app.route('/crearEvento', methods=['POST'])
 @jwt_required()

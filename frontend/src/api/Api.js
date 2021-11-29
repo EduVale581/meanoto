@@ -426,10 +426,72 @@ async function crearProfesor(payload) {
     }
 }
 
+async function actualizarSala(sala) {
+    try {
+        const token = window.localStorage.getItem('token');
+        const resp = await fetch(`${API}/actualizarSala`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify(sala),
+        });
+
+
+
+        if (resp.status === 403) {
+            return 403;
+        }
+        else if (resp.status === 401) {
+            return 401;
+
+        }
+        else if (resp.status === 300) {
+            return 300;
+
+        }
+        else if (resp.status === 200) {
+            const data = await resp.json();
+            return data;
+        }
+        else if (resp.status === 300) {
+            return 300;
+
+        }
+        else if (!resp.ok) return -1;
+        else {
+            return -1;
+        }
+
+    }
+    catch {
+        return -1;
+
+    }
+}
+
 async function eliminarProfesor(id) {
     try {
         const token = window.localStorage.getItem('token');
         const resp = await fetch(`${API}/profesores/${id}`, {
+            method: "DELETE",
+            headers: {
+                "Content-Type": "application/json",
+                'Authorization': 'Bearer ' + token
+            },
+        });
+        return resp.status;
+    }
+    catch {
+        return -1;
+    }
+}
+
+async function eliminarSala(id) {
+    try {
+        const token = window.localStorage.getItem('token');
+        const resp = await fetch(`${API}/salas/${id}`, {
             method: "DELETE",
             headers: {
                 "Content-Type": "application/json",
@@ -467,6 +529,40 @@ async function obtenerModulos() {
         else if (resp.status === 200) {
             return await resp.json();
         }
+        else {
+            return -1;
+        }
+    }
+    catch (err) {
+
+    }
+};
+
+async function obtenerSalas() {
+    try {
+        const token = window.localStorage.getItem('token');
+
+        const resp = await fetch(`${API}/salas`, {
+            method: 'GET',
+            headers: {
+                "Content-Type": "application/json",
+                'Authorization': 'Bearer ' + token
+            }
+        })
+
+
+
+        if (resp.status === 403) {
+            return 403;
+        }
+        else if (resp.status === 401) {
+            return 401;
+        }
+
+        else if (resp.status === 200) {
+            return await resp.json();
+        }
+        else if (!resp.ok) return -1;
         else {
             return -1;
         }
@@ -771,6 +867,44 @@ async function actualizarCarreraFacultad(id, facultad, carrera) {
     }
 };
 
+async function crearSala(sala) {
+    try {
+        const token = window.localStorage.getItem('token');
+
+        const resp = await fetch(`${API}/salas`, {
+            method: 'POST',
+            headers: {
+                "Content-Type": "application/json",
+                'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify(sala)
+        })
+
+
+        if (resp.status === 403) {
+            return 403;
+        }
+        else if (resp.status === 401) {
+            return 401;
+        }
+        else if (resp.status === 300) {
+            return 300;
+        }
+        else if (resp.status === 200) {
+            const data = await resp.json();
+            return data;
+        }
+        else if (!resp.ok) return -1;
+        else {
+            return -1;
+        }
+    }
+    catch {
+        return -1;
+
+    }
+};
+
 async function actualizarModuloEstudiante(id, modulos) {
     try {
         const token = window.localStorage.getItem('token');
@@ -980,6 +1114,10 @@ export default {
     obtenerEstudiante,
     generarCodigo,
     agregarEvento,
+    obtenerSalas,
+    crearSala,
+    eliminarSala,
+    actualizarSala,
     dbx,
     API
 };

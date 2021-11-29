@@ -186,8 +186,8 @@ export default function NewEventDialog({ onClose, onSave, open, professor }) {
     else if (eventCode.length === 0) {
       return setError("Código evento incompleto");
     }
-    else if (Number.isInteger(maximoAsistentes)) {
-      return setError("El numero de asistentes debe ser un numero");
+    else if (maximoAsistentes.length === 0) {
+      return setError("Numero asistentes incompleto");
     }
     else if (selectedCourse.id === -1) {
       return setError("Seleccionar Curso");
@@ -252,11 +252,6 @@ export default function NewEventDialog({ onClose, onSave, open, professor }) {
 
   }
 
-  const handleModules = (data) => {
-    setError("");
-    setCourses(data);
-  }
-
   const handleRecurrencia = ({ target }) => {
     const option = diasSemana.find(r => r.value === target.value);
     setRecurrencia(option);
@@ -276,11 +271,6 @@ export default function NewEventDialog({ onClose, onSave, open, professor }) {
   const handleTipoRecurrencia = ({ target }) => {
     const option = tiposRecurrencia.find(r => r.value === target.value);
     setTipoRecurrencia(option);
-  }
-
-  const handleEstado = ({ target }) => {
-    const newState = estadosEvento.find(e => e.value === target.value);
-    setEstadoEvento(newState);
   }
 
   const handleCourse = ({ target }) => {
