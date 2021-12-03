@@ -125,14 +125,11 @@ def agregarNuevoModulo():
     else:
         return jsonify({'message': 'El módulo ingresado, ya se encuentra en nuestro registros'}), 200
 
-
 @app.route('/modulos/<id>', methods=['DELETE'])
 @jwt_required()
 def eliminarModulo(id):
     db.db.modulos.delete_one({'_id': ObjectId(id)})
     return jsonify({'message': 'Módulo Eliminado'}), 200
-
-
 
 @app.route('/modulos', methods=['GET'])
 @jwt_required()
@@ -397,11 +394,11 @@ def generarCodigoEvento():
     while True:
 
         lista = []
-        
+
         for x in range(8):
             a = randint(0,9)
             lista.append(str(a)) #Estas 2 líneas se pueden juntar en: lista.append(str(randint(0,9)))
-            
+
         for x in range(8):
             codigo = codigo + lista[x]
 
@@ -450,7 +447,7 @@ def crearSala():
             'metrosCuadrados': request.json['metrosCuadrados']
         })
         return jsonify({'message': 'Sala agregada con éxito'}), 200
-        
+
     else:
         return jsonify({'message': 'Sala ya existe'}), 300
 
@@ -460,9 +457,9 @@ def eliminarSala(id):
     salaExiste = db.db.salas.find_one({"_id": ObjectId(id)})
 
     if salaExiste is None:
-        
+
         return jsonify({'message': 'Sala no existe'}), 300
-        
+
     else:
         db.db.salas.delete_one({'_id': ObjectId(id)})
         return jsonify({'message': 'Módulo Eliminado'}), 200
@@ -482,7 +479,7 @@ def actulizarSala():
             'metrosCuadrados':request.json['metrosCuadrados'],
             'estado':request.json['estado']
         }})
-        return jsonify({'message': 'Sala Actualizado'}), 200      
+        return jsonify({'message': 'Sala Actualizado'}), 200
 
 @app.route('/crearEvento', methods=['POST'])
 @jwt_required()
@@ -509,10 +506,34 @@ def crearEvento():
             'recurrencia': request.json['recurrencia'],
         })
         return jsonify({'message': 'Evento agregado con éxito'}), 200
-        
+
     else:
         return jsonify({'message': 'Codigo ya existe'}), 300
-        
+
+@app.route('/eventos', methods=['GET'])
+@jwt_required()
+def getEventos():
+    eventos = []
+    for doc in db.db.eventos.find():
+        eventos.append({
+            'nombre': doc['nombre'],
+            'id': doc['_id'],
+            'bloque': doc['bloque'],
+            'fecha': doc['fecha'],
+            'fecha_creacion': doc['fecha_creacion'],
+            'modulo': doc['modulo'],
+            'profesor': doc['profesor'],
+            'codigo': doc['codigo'],
+            'estado': doc['estado'],
+            'fecha_fin_recurrencia': doc['fecha_fin_recurrencia'],
+            'fecha_inicio_recurrencia': doc['fecha_inicio_recurrencia'],
+            'maximo_asistentes': doc['maximo_asistentes'],
+            'sala': doc['sala'],
+            'asistentes': doc['asistentes'],
+            'tipoRecurencia': doc['tipoRecurencia'],
+            'recurrencia': doc['recurrencia'],
+        })
+    return jsonify(eventos), 200
 
 @app.route('/actualizarModuloEstudiante', methods=['POST'])
 @jwt_required()
@@ -637,8 +658,6 @@ def actualizarContra():
                 body="Contraseña cambiada con éxito"
             )
             return jsonify({'message': "OK"}), 200
-
-
 
 if __name__ == '__main__':
     app.run(port=8000, debug=True)

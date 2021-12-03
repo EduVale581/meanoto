@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback} from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Box from '@mui/material/Box';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -13,22 +13,21 @@ import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 import EventSeatIcon from '@mui/icons-material/EventSeat';
 import AddLocationIcon from '@mui/icons-material/AddLocation';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { esES } from '@mui/material/locale';
 import { visuallyHidden } from '@mui/utils';
-import axios from 'axios';
 
 import SearchBar from '../SearchBar';
 import RoomAssignmentDialog from './RoomAssignmentDialog';
 
-function createData(id, nombre, modulo, profesor, sala, fecha) {
-  return {
-    id,
-    nombre,
-    modulo,
-    profesor,
-    sala,
-    fecha,
-  };
-}
+const theme = createTheme(
+  {
+    palette: {
+      primary: { main: '#1976d2' },
+    },
+  },
+  esES,
+);
 
 function descendingComparator(a, b, orderBy) {
   if (b[orderBy] < a[orderBy]) {
@@ -95,12 +94,10 @@ const headCells = [
     id: 'button',
     label: ''
   }
-
 ];
 
 function EnhancedTableHead(props) {
-  const { order, orderBy, onRequestSort } =
-    props;
+  const { order, orderBy, onRequestSort } = props;
   const createSortHandler = (property) => (event) => {
     onRequestSort(event, property);
   };
@@ -134,44 +131,30 @@ function EnhancedTableHead(props) {
   );
 }
 
-export default function EnhancedTable() {
+export default function EventSearchTable({events}) {
+  const isMounted = useRef(true);
   const [order, setOrder] = useState('asc');
   const [orderBy, setOrderBy] = useState('calories');
   const [selectedId, setSelectedId] = useState();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
-  const [events, setEvents] = useState([]);
-  const [rows, setRows] = useState([
-    createData('22654', 'Laboratorio 1', 'Cálculo 1', 'Juan López', 'S1', '2020-08-22'),
-    createData('35485', 'Clase 1', 'Cálculo 2', 'John López', 'A22', '2020-10-22'),
-    createData('55564', 'Laboratorio 11', 'Cálculo 3', 'Eduardo Salcedo', '', '2020-08-12'),
-  ]);
+  // const [events, setEvents] = useState([]);
+  const [rows, setRows] = useState([]);
   const [selectedRow, setSelectedRow] = useState();
-  const [showRoomAssignmentDialog, setShowRoomAssignmentDialog] = useState(false);
+  const [showRoomAssignmentDialog, setShowRoomAssignmentDialog] = useState(
+    false
+  );
+  console.log("events", events);
+
+  useEffect(() => {
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
 
   useEffect( () => {
-    setEvents([
-      {
-        _id: 123,
-        bloque: 5,
-        fecha: Date.now(),
-        fecha_creacion: Date.now(),
-        modulo: "615cd601c9c677bba738f800",
-        nombre: "Clase 1 práctica",
-        profesor: "615cd5a9c9c677bba738f7ff",
-        codigo: "TECWEB2020",
-        estado: "disponible",
-        fecha_fin_recurrencia: "2020-08-15T04:00:00.000Z",
-        fecha_inicio_recurrencia: "2020-07-11T04:00:00.000Z",
-        maximo_asistentes: 22,
-        recurrencia: "semanal",
-        sala: "615cd775c9c677bba738f805",
-        asistentes: [
-          { "presente": false, "asistente": "615ce862c9c677bba738f82d" }
-        ]
-      }
-    ])
-  }, []);
+    setRows(events);
+  }, [events])
 
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === 'asc';
@@ -180,7 +163,7 @@ export default function EnhancedTable() {
   };
 
   const handleClick = (event, row) => {
-    console.log("la row", row);
+    // console.log("la row", row);
     setSelectedId(row.id);
     setSelectedRow(row);
   };
@@ -202,12 +185,45 @@ export default function EnhancedTable() {
 
   const handleAddLocation = (row) => {
     setShowRoomAssignmentDialog(true);
+  };
+
+// function createData(id, nombre, modulo, profesor, sala, fecha) {
+//   return {
+//     id,
+//     nombre,
+//     modulo,
+//     profesor,
+//     sala,
+//     fecha,
+//   };
+// }
+
+  const handleSearch = (value) => {
+    const cleanValue = removeAccents(value.toLowerCase());
+    const filtered = events.filter(
+      e => (
+        removeAccents(e.id.toLowerCase()).indexOf(cleanValue) !== -1 ||
+        removeAccents(e.nombre.toLowerCase()).indexOf(cleanValue) !== -1 ||
+        removeAccents(e.fecha.toLowerCase()).indexOf(cleanValue) !== -1 ||
+        removeAccents(e.profesor.toLowerCase()).indexOf(cleanValue) !== -1 ||
+        removeAccents(e.modulo.toLowerCase()).indexOf(cleanValue) !== -1 ||
+        removeAccents(e.sala.toLowerCase()).indexOf(cleanValue) !== -1
+      )
+    );
+    setRows(filtered);
+  };
+
+  function removeAccents(str) {
+    return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   }
 
   return (
     <Box sx={{ width: '100%' }}>
 
-      <SearchBar />
+      <SearchBar
+        placeholder='Busca un evento'
+        onSearch={ ( e ) => handleSearch(e.target.value)}
+      />
       <Paper sx={{ width: '100%', mb: 2 }}>
         <TableContainer>
           <Table
@@ -280,15 +296,18 @@ export default function EnhancedTable() {
             </TableBody>
           </Table>
         </TableContainer>
-        <TablePagination
-          rowsPerPageOptions={[5, 10, 25]}
-          component="div"
-          count={rows.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-        />
+
+        <ThemeProvider theme={theme}>
+          <TablePagination
+            rowsPerPageOptions={[5, 10, 25]}
+            component="div"
+            count={rows.length}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+          />
+        </ThemeProvider>
       </Paper>
 
       { showRoomAssignmentDialog && (
@@ -302,3 +321,14 @@ export default function EnhancedTable() {
     </Box>
   );
 }
+
+// function createData(id, nombre, modulo, profesor, sala, fecha) {
+//   return {
+//     id,
+//     nombre,
+//     modulo,
+//     profesor,
+//     sala,
+//     fecha,
+//   };
+// }

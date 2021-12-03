@@ -251,8 +251,6 @@ async function getModulos2() {
         return -1;
 
     }
-
-
 };
 
 async function crearNuevoModulo(nombre, facultadSeleccionadaModal, nro_alumnos, carreraSeleccionadaModal, setModulosArreglo, setModulosMostrar, setModulosServidor, facultadSeleccionadaFiltro, carreraSeleccionadaFiltro, setLoadingCrearModulo, setOpenCrearModulo) {
@@ -572,8 +570,6 @@ async function obtenerSalas() {
     }
 };
 
-
-
 async function eliminarModulo(id, setLoadingEliminar, setModulosArreglo, setModulosMostrar, setModulosServidor, facultadSeleccionadaFiltro, carreraSeleccionadaFiltro) {
     try {
         setLoadingEliminar(true);
@@ -616,12 +612,6 @@ async function eliminarModulo(id, setLoadingEliminar, setModulosArreglo, setModu
     }
 };
 
-export {
-    getProfesores,
-    crearProfesor,
-    eliminarProfesor,
-    obtenerModulos
-};
 
 async function enviarContrasena(rut, contrasena, contrasenaMD5) {
     try {
@@ -660,8 +650,6 @@ async function enviarContrasena(rut, contrasena, contrasenaMD5) {
     catch {
         return -1;
     }
-
-
 
 };
 
@@ -703,8 +691,6 @@ async function cambiarContrasena(id, provisoria, contrasena) {
         return -1;
     }
 
-
-
 };
 
 async function getEstudiantes() {
@@ -745,8 +731,6 @@ async function getEstudiantes() {
         return -1;
 
     }
-
-
 };
 
 async function getFacultades() {
@@ -787,8 +771,6 @@ async function getFacultades() {
         return -1;
 
     }
-
-
 };
 
 async function validarEstudiante(id, validado) {
@@ -1090,6 +1072,33 @@ async function eliminarEstudiante(id) {
         return -1;
 
     }
+};
+
+async function getEventos() {
+    try {
+        const token = window.localStorage.getItem('token');
+        const resp = await fetch(`${API}/eventos`, {
+            method: 'GET',
+            headers: {
+                "Content-Type": "application/json",
+                'Authorization': 'Bearer ' + token
+            }
+        })
+        if (!resp.ok) return -1;
+        if (resp.status === 200) {
+            return await resp.json();
+        }
+        return -1;
+    }
+    catch (err) { }
+}
+
+export {
+    getEventos,
+    getProfesores,
+    crearProfesor,
+    eliminarProfesor,
+    obtenerModulos
 };
 
 export default {
