@@ -66,18 +66,18 @@ const headCells = [
     disablePadding: true,
     label: 'Nombre',
   },
-  {
-    id: 'modulo',
-    numeric: true,
-    disablePadding: false,
-    label: 'Módulo',
-  },
-  {
-    id: 'profesor',
-    numeric: true,
-    disablePadding: false,
-    label: 'Profesor',
-  },
+  // {
+  //   id: 'modulo',
+  //   numeric: true,
+  //   disablePadding: false,
+  //   label: 'Módulo',
+  // },
+  // {
+  //   id: 'profesor',
+  //   numeric: true,
+  //   disablePadding: false,
+  //   label: 'Profesor',
+  // },
   {
     id: 'sala',
     numeric: true,
@@ -144,7 +144,6 @@ export default function EventSearchTable({events}) {
   const [showRoomAssignmentDialog, setShowRoomAssignmentDialog] = useState(
     false
   );
-  console.log("events", events);
 
   useEffect(() => {
     return () => {
@@ -267,8 +266,6 @@ export default function EventSearchTable({events}) {
                       >
                         {row.nombre}
                       </TableCell>
-                      <TableCell align="right">{row.modulo}</TableCell>
-                      <TableCell align="right">{row.profesor}</TableCell>
                       <TableCell align="right">
                         {row.sala || (
                           <IconButton onClick={ () => handleAddLocation(row) }>
