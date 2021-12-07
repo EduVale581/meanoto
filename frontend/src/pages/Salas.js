@@ -43,7 +43,7 @@ const InputAforo = styled(MuiInput)({
 
 export default function Salas() {
 
-  const { user, setUser, setCargandoUsuario, cargandoUsuario } = useUsuario();
+  const { user, setUser, setCargandoUsuario } = useUsuario();
 
   const [openCrearSala, setOpenCrearSala] = useState(false);
   const [facultadSeleccionadaModal, setFacultadSeleccionadaModal] = useState("");
@@ -154,7 +154,18 @@ export default function Salas() {
   const handleOpenSala = () => setOpenCrearSala(true);
   const handleCloseSala = () => setOpenCrearSala(false);
   const crearSala = async () => {
-    if (nombreSala.length === 0) {
+    let correcto = true;
+    try {
+      let num = Number.parseInt(aforoSala);
+      let num2 = Number.parseInt(metrosCuadradoSala);
+    }
+    catch {
+      correcto = false;
+    }
+    if (!correcto) {
+      setError("El aforo y metros cuadrados deben ser un número entero.")
+    }
+    else if (nombreSala.length === 0) {
       setError("Debe ingresar el nombre de la sala")
 
     }
@@ -175,11 +186,11 @@ export default function Salas() {
       let facultadObtenida = facultadesArreglo.filter((e) => e.nombre === facultadSeleccionadaModal)[0]
       let salaCrear = {
         nombre: nombreSala,
-        aforo: aforoSala,
+        aforo: Number.parseInt(aforoSala),
         facultad: facultadObtenida.id,
         estado: "DISPONIBLE",
         aforoActual: 0,
-        metrosCuadrados: metrosCuadradoSala
+        metrosCuadrados: Number.parseInt(metrosCuadradoSala)
       }
       const data = await Api.crearSala(salaCrear);
       if (data === 401) {

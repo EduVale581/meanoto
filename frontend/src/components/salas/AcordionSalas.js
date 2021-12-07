@@ -77,7 +77,18 @@ export default function AcordionSalas({ sala, setSalasMostrar, setSalasArreglo, 
     const handleCloseEditarSala = () => setOpenEditarSala(false);
 
     const modificarSala = async () => {
-        if (nombreSala.length === 0) {
+        let correcto = true;
+        try {
+            let num = Number.parseInt(aforoSala);
+            let num2 = Number.parseInt(metrosCuadradoSala);
+        }
+        catch {
+            correcto = false;
+        }
+        if (!correcto) {
+            setError("El aforo y metros cuadrados deben ser un número entero.")
+        }
+        else if (nombreSala.length === 0) {
             setError("Debe ingresar el nombre de la sala")
 
         }
@@ -99,9 +110,9 @@ export default function AcordionSalas({ sala, setSalasMostrar, setSalasArreglo, 
             let salaCrear = {
                 id: sala.id,
                 nombre: nombreSala,
-                aforo: aforoSala,
+                aforo: Number.parseInt(aforoSala),
                 facultad: facultadObtenida.id,
-                metrosCuadrados: metrosCuadradoSala,
+                metrosCuadrados: Number.parseInt(metrosCuadradoSala),
                 estado: estadoSala
             }
             const data = await Api.actualizarSala(salaCrear);
@@ -336,6 +347,7 @@ export default function AcordionSalas({ sala, setSalasMostrar, setSalasArreglo, 
                                     label="Aforo"
                                     variant="outlined"
                                     fullWidth
+                                    type="number"
                                     value={aforoSala}
                                     onChange={handleChangeAforoSala}
                                 />
@@ -347,6 +359,7 @@ export default function AcordionSalas({ sala, setSalasMostrar, setSalasArreglo, 
                                     label="Metros Cuadrados"
                                     variant="outlined"
                                     fullWidth
+                                    type="number"
                                     value={metrosCuadradoSala}
                                     onChange={handleChangeMetrosSala}
                                 />
