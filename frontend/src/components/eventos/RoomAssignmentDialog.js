@@ -1,50 +1,160 @@
 import React, { useState, useEffect } from 'react';
-import Button from '@mui/material/Button';
-import Box from '@mui/material/Box';
-import TextField from '@mui/material/TextField';
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
-import DialogTitle from '@mui/material/DialogTitle';
-import Autocomplete from '@mui/material/Autocomplete';
+import {
+  Button,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Box,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Alert,
+} from '@mui/material/';
+import Api from '../../api/Api';
+import { LoadingButton } from '@mui/lab';
 
-import RangeSlider from './RangeSlider';
-import FacultadesSelect from './FacultadesSelect';
+export default function RoomAssignmentDialog({ open, handleClose, event }) {
+  console.log(event)
 
-export default function RoomAssignmentDialog({ open, handleClose, event}) {
+  const [facultades, setFacultades] = useState(null);
+  const [salas, setSalas] = useState(null);
+  const [salasMostrar, setSalasMostrar] = useState(null);
 
-  const [facultad, setFacultad] = useState();
-  const [rooms, setRooms] = useState([
-    {
-      _id: 123333,
-      nombre: "S1"
-    },
-    {
-      _id: 5654,
-      nombre: "S8"
-    },
+  const [cargandoSala, setCargandoSala] = useState(false);
+  const [mensajeAlerta, setMensajeAlerta] = useState(false);
 
-  ]);
 
-  const [roomsForAutocomplete, setRoomsForAutocomplete] = useState(
-    rooms.map( r => ({
-      label: r.nombre
-    }) )
-  );
 
-  useEffect( () => {
-    setRoomsForAutocomplete(
-      rooms.map( r => ({
-        label: r.nombre,
-        ...r
-      }) )
-    )
-  }, [rooms] )
+  const [selectedFacultad, setSelectedFacultad] = useState(null);
+  const [selectedSala, setSelectedSala] = useState(null);
+
+  const handleChangeFacultad = (eventEntrada) => {
+    const { value } = eventEntrada.target;
+    const newSelection = facultades.find(f => f._id === value._id);
+    setSalasMostrar(salas && salas.filter((e) => e.facultad === value.nombre && e.estado === "DISPONIBLE" && e.aforo >= event.maximo_asistentes))
+    setSelectedFacultad(newSelection);
+  };
+
+  const handleChangeSala = (eventEntrada) => {
+    const { value } = eventEntrada.target;
+    const newSelection = salasMostrar.find(f => f._id === value._id);
+    setSelectedSala(newSelection);
+  };
+
+  const modificarDatos = () => {
+    setCargandoSala(true);
+    if (!selectedSala || !selectedFacultad) {
+      setMensajeAlerta("Debe seleccionar sala y facultad.")
+      setCargandoSala(false);
+
+    }
+    else {
+      Api.modificarSalaEvento(event.id, selectedSala.id).then((data) => {
+        if (data === 401) {
+          window.localStorage.removeItem("token");
+          window.localStorage.removeItem("user");
+          window.location.href = "/login"
+        }
+        else if (data === 403) {
+          window.localStorage.removeItem("token");
+          window.localStorage.removeItem("user");
+          window.location.href = "/login"
+
+        }
+        else if (data === 300) {
+          setMensajeAlerta("Error en el servidor.")
+          setCargandoSala(false);
+
+        }
+        else if (data === -1) {
+          setMensajeAlerta("Error en el servidor.")
+          setCargandoSala(false);
+
+        }
+        else {
+          setCargandoSala(false);
+          handleClose();
+        }
+
+
+      }).catch(() => {
+        setMensajeAlerta("Error en el servidor.")
+        setCargandoSala(false);
+
+      })
+
+    }
+
+
+  };
+
+  useEffect(() => {
+    Api.getFacultades().then((data) => {
+      if (data === 401) {
+        window.localStorage.removeItem("token");
+        window.localStorage.removeItem("user");
+        window.location.href = "/login"
+      }
+      else if (data === 403) {
+        window.localStorage.removeItem("token");
+        window.localStorage.removeItem("user");
+        window.location.href = "/login"
+
+      }
+      else if (data === 300) {
+
+      }
+      else if (data === -1) {
+
+      }
+      else {
+        setFacultades(data)
+      }
+
+    }).catch(() => { })
+
+  }, []);
+
+  useEffect(() => {
+    Api.obtenerSalas().then((data) => {
+      if (data === 401) {
+        window.localStorage.removeItem("token");
+        window.localStorage.removeItem("user");
+        window.location.href = "/login"
+      }
+      else if (data === 403) {
+        window.localStorage.removeItem("token");
+        window.localStorage.removeItem("user");
+        window.location.href = "/login"
+
+      }
+      else if (data === 300) {
+
+      }
+      else if (data === -1) {
+
+      }
+      else {
+        setSalas(data)
+      }
+
+    }).catch(() => { })
+
+  }, []);
+
+
 
   return (
     <div>
-      <Dialog open={open} onClose={handleClose}>
+      <Dialog
+        open={open}
+        onClose={handleClose}
+        fullWidth
+        maxWidth="md"
+      >
         <DialogTitle>Asignar Sala a Evento</DialogTitle>
         <DialogContent>
 
@@ -57,32 +167,48 @@ export default function RoomAssignmentDialog({ open, handleClose, event}) {
           </DialogContentText>
 
           <Box mt={3}>
-            <FacultadesSelect />
+            <FormControl fullWidth>
+              <InputLabel id="demo-simple-select-label">Facultad</InputLabel>
+              <Select
+                labelId="demo-simple-select-label"
+                value={selectedFacultad ? selectedFacultad : ""}
+                label={selectedFacultad ? selectedFacultad.nombre : ""}
+                onChange={handleChangeFacultad}
+              >
+                {facultades && facultades.map((f, idx) => (
+                  <MenuItem key={idx} value={f}>{f.nombre}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
           </Box>
 
           <Box mt={3}>
-            <DialogContentText>
-            Filtrar Salas por Aforo
-          </DialogContentText>
-
-          </Box>
-
-          <RangeSlider />
-
-          <Box mt={3}>
-            <Autocomplete
-              disablePortal
-              id="combo-box-demo"
-              options={roomsForAutocomplete}
-              sx={{ width: 300 }}
-              renderInput={(params) => <TextField {...params} label="Sala" />}
-            />
+            <FormControl fullWidth>
+              <InputLabel id="demo-simple-select-label2">Salas</InputLabel>
+              <Select
+                labelId="demo-simple-select-label2"
+                value={selectedSala ? selectedSala : ""}
+                label={selectedSala ? selectedSala.nombre : ""}
+                onChange={handleChangeSala}
+              >
+                {salasMostrar && salasMostrar.map((f, idx) => (
+                  <MenuItem key={idx} value={f}>{f.nombre}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
           </Box>
 
         </DialogContent>
+        {mensajeAlerta && (<Alert severity="error">{mensajeAlerta}</Alert>)}
         <DialogActions>
           <Button color='secondary' onClick={handleClose}>Cancelar</Button>
-          <Button color='primary' onClick={handleClose}>Aceptar</Button>
+          <LoadingButton
+            loading={cargandoSala}
+            color='primary'
+            onClick={modificarDatos}
+          >
+            Aceptar
+          </LoadingButton>
         </DialogActions>
       </Dialog>
 

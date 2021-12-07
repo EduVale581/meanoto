@@ -347,6 +347,46 @@ async function guardarCantidadEstudiantes(id, cantEstudiantes, profesorSeleccion
     }
 };
 
+async function modificarSalaEvento(id, sala) {
+    try {
+        const token = window.localStorage.getItem('token');
+        const resp = await fetch(`${API}/modificarSalaEvento/${id}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify({ sala: sala }),
+        });
+
+
+
+        if (resp.status === 403) {
+            return 403;
+        }
+        else if (resp.status === 401) {
+            return 401;
+        }
+        else if (resp.status === 200) {
+            const data = await resp.json();
+            return data;
+
+        }
+        else if (resp.status === 300) {
+            return 300;
+
+        }
+        else if (!resp.ok) return -1;
+        else {
+            return -1;
+        }
+
+    }
+    catch {
+        return -1;
+    }
+};
+
 async function getProfesores() {
     try {
         const token = window.localStorage.getItem('token');
@@ -1127,6 +1167,7 @@ export default {
     crearSala,
     eliminarSala,
     actualizarSala,
+    modificarSalaEvento,
     dbx,
     API
 };

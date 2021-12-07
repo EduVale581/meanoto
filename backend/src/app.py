@@ -108,6 +108,14 @@ def actualizarNumAlumnos(id):
     }})
     return jsonify({'message': 'Módulo Actualizado'}), 200
 
+@app.route('/modificarSalaEvento/<id>', methods=['PUT'])
+@jwt_required()
+def modificarSalaEvento(id):
+    db.db.eventos.update_one({'_id': ObjectId(id)}, {"$set": {
+        'sala': ObjectId(request.json['sala']),
+    }})
+    return jsonify({'message': 'Sala Actualizada'}), 200
+
 @app.route('/modulos', methods=['POST'])
 @jwt_required()
 def agregarNuevoModulo():
@@ -513,8 +521,19 @@ def crearEvento():
 @app.route('/eventos', methods=['GET'])
 @jwt_required()
 def getEventos():
+    
     eventos = []
     for doc in db.db.eventos.find():
+        sala = None
+        if doc['sala'] == "" or doc['sala'] == " ":
+            sala = None
+        else:
+            sala = db.db.salas.find_one({"_id": ObjectId(doc['sala'])})
+            
+            if sala is None:
+                sala = None
+            else: 
+                sala = sala['nombre']
         eventos.append({
             'nombre': doc['nombre'],
             'id': doc['_id'],
@@ -528,7 +547,7 @@ def getEventos():
             'fecha_fin_recurrencia': doc['fecha_fin_recurrencia'],
             'fecha_inicio_recurrencia': doc['fecha_inicio_recurrencia'],
             'maximo_asistentes': doc['maximo_asistentes'],
-            'sala': doc['sala'],
+            'sala': sala,
             'asistentes': doc['asistentes'],
             'tipoRecurencia': doc['tipoRecurencia'],
             'recurrencia': doc['recurrencia'],

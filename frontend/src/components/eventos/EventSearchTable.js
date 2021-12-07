@@ -11,11 +11,14 @@ import TableSortLabel from '@mui/material/TableSortLabel';
 import Paper from '@mui/material/Paper';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
+import Grid from '@mui/material/Grid';
 import EventSeatIcon from '@mui/icons-material/EventSeat';
 import AddLocationIcon from '@mui/icons-material/AddLocation';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { esES } from '@mui/material/locale';
 import { visuallyHidden } from '@mui/utils';
+
+import { useUsuario } from '../../context/usuarioContext';
 
 import SearchBar from '../SearchBar';
 import RoomAssignmentDialog from './RoomAssignmentDialog';
@@ -131,7 +134,7 @@ function EnhancedTableHead(props) {
   );
 }
 
-export default function EventSearchTable({events}) {
+export default function EventSearchTable({ events }) {
   const isMounted = useRef(true);
   const [order, setOrder] = useState('asc');
   const [orderBy, setOrderBy] = useState('calories');
@@ -145,13 +148,15 @@ export default function EventSearchTable({events}) {
     false
   );
 
+  const { user } = useUsuario();
+
   useEffect(() => {
     return () => {
       isMounted.current = false;
     };
   }, []);
 
-  useEffect( () => {
+  useEffect(() => {
     setRows(events);
   }, [events])
 
@@ -186,16 +191,16 @@ export default function EventSearchTable({events}) {
     setShowRoomAssignmentDialog(true);
   };
 
-// function createData(id, nombre, modulo, profesor, sala, fecha) {
-//   return {
-//     id,
-//     nombre,
-//     modulo,
-//     profesor,
-//     sala,
-//     fecha,
-//   };
-// }
+  // function createData(id, nombre, modulo, profesor, sala, fecha) {
+  //   return {
+  //     id,
+  //     nombre,
+  //     modulo,
+  //     profesor,
+  //     sala,
+  //     fecha,
+  //   };
+  // }
 
   const handleSearch = (value) => {
     const cleanValue = removeAccents(value.toLowerCase());
@@ -221,7 +226,7 @@ export default function EventSearchTable({events}) {
 
       <SearchBar
         placeholder='Busca un evento'
-        onSearch={ ( e ) => handleSearch(e.target.value)}
+        onSearch={(e) => handleSearch(e.target.value)}
       />
       <Paper sx={{ width: '100%', mb: 2 }}>
         <TableContainer>
@@ -247,6 +252,7 @@ export default function EventSearchTable({events}) {
                 .map((row, index) => {
                   const isItemSelected = isSelected(row.name);
                   const labelId = `enhanced-table-checkbox-${index}`;
+                  console.log(row.sala)
 
                   return (
                     <TableRow
@@ -256,7 +262,6 @@ export default function EventSearchTable({events}) {
                       aria-checked={isItemSelected}
                       tabIndex={-1}
                       key={index}
-                      // selected={isItemSelected}
                     >
                       <TableCell
                         component="th"
@@ -267,18 +272,33 @@ export default function EventSearchTable({events}) {
                         {row.nombre}
                       </TableCell>
                       <TableCell align="right">
-                        {row.sala || (
-                          <IconButton onClick={ () => handleAddLocation(row) }>
-                            <AddLocationIcon/>
-                          </IconButton>
-                        )}
+                        {(user.tipo_usuario === 'ADMIN' || user.tipo_usuario === 'OPERATIVO') ? (
+                          <Grid continer>
+                            <Grid item xs={2} md={2}>
+                              <IconButton onClick={() => handleAddLocation(row)}>
+                                <AddLocationIcon />
+                              </IconButton>
+                            </Grid>
+                            <Grid item xs={10} md={10}>
+                              {row.sala}
+                            </Grid>
+
+                          </Grid>
+
+                        ) : (
+                          row.sala
+                        )
+                        }
+
                       </TableCell>
                       <TableCell align="right">{row.fecha}</TableCell>
                       <TableCell align="right">
 
                         <Tooltip title="Reservar">
-                          <IconButton>
-                            <EventSeatIcon/>
+                          <IconButton
+                            disabled={row.sala ? false : true}
+                          >
+                            <EventSeatIcon />
                           </IconButton>
                         </Tooltip>
                       </TableCell>
@@ -307,13 +327,13 @@ export default function EventSearchTable({events}) {
         </ThemeProvider>
       </Paper>
 
-      { showRoomAssignmentDialog && (
+      {showRoomAssignmentDialog && (
         <RoomAssignmentDialog
           open={showRoomAssignmentDialog}
-          handleClose={ () => setShowRoomAssignmentDialog(false) }
+          handleClose={() => setShowRoomAssignmentDialog(false)}
           event={events[0]}
         />
-      ) }
+      )}
 
     </Box>
   );
