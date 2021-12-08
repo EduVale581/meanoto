@@ -632,6 +632,35 @@ def getUsuario():
     else:
         return jsonify({'message': 'Ha ocurrido un error al obtener el usuario'}), 401
 
+@app.route('/actualizarUsuario', methods=['POST'])
+@jwt_required()
+def actulizarUsuario():
+    usuario = db.db.usuarios.find_one({"_id": ObjectId(request.json['id'])})
+    if usuario is not None:
+        if usuario['tipo_usuario']=="ESTUDIANTE":
+            db.db.usuarios.update_one({'_id': ObjectId(request.json['id'])}, {"$set": {
+                'contrasena': request.json['contrasena']
+            }})
+            db.db.estudiantes.update_one({'_id': ObjectId(usuario['refId'])}, {"$set": {
+                'contrasena': request.json['contrasena']
+            }})
+            return jsonify({'message': 'Estudiante Actulizado'}), 200
+        elif usuario['tipo_usuario']=="PROFESOR":
+            db.db.usuarios.update_one({'_id': ObjectId(request.json['id'])}, {"$set": {
+                'contrasena': request.json['contrasena']
+            }})
+            db.db.profesores.update_one({'_id': ObjectId(usuario['refId'])}, {"$set": {
+                'contrasena': request.json['contrasena']
+            }})
+            return jsonify({'message': 'Profesor Actulizado'}), 200
+        else:
+            db.db.usuarios.update_one({'_id': ObjectId(request.json['id'])}, {"$set": {
+                'contrasena': request.json['contrasena']
+            }})
+            return jsonify({'message': 'Usuario Actulizado'}), 200
+    else:
+        return jsonify({'message': 'Ha ocurrido un error al obtener el usuario'}), 200
+
 
 @app.route('/registro', methods=['POST'])
 def iniciarRegistro():
