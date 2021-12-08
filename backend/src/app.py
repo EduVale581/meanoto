@@ -119,7 +119,7 @@ def modificarSalaEvento(id):
 @app.route('/modulos', methods=['POST'])
 @jwt_required()
 def agregarNuevoModulo():
-    moduloExistente = db.db.modulos.find_one({"facultad": request.json['facultad'], "carrera": request.json['carrera'] })
+    moduloExistente = db.db.modulos.find_one({"facultad": request.json['facultad'], "carrera": request.json['carrera'], "nombre": request.json['nombre'] })
     if moduloExistente is None:
         id = db.db.modulos.insert({
             'nombre': request.json['nombre'],
@@ -170,7 +170,6 @@ def getModulos():
     for doc in db.db.modulos.find():
         idModulo =  doc['_id']
         profesor = db.db.profesores.find_one({"_id": doc['profesor']})
-        facultad = db.db.facultades.find_one({"_id": doc['facultad']})
         estudiantesArreglo = []
         for doc2 in db.db.estudiantes.find({"modulos": idModulo}):
             estudiantesArreglo.append({
@@ -184,17 +183,14 @@ def getModulos():
                 'eventos': doc2['eventos'],
             })
         nombreProfesor = ""
-        nombreFacultad = ""
         if profesor is not None:
             nombreProfesor = profesor['nombre']+" "+profesor['apellido']
-        if facultad is not None:
-            nombreFacultad = facultad['nombre']
 
         modulos.append({
             'id': idModulo,
             'nombre': doc['nombre'],
             'profesor': nombreProfesor,
-            'facultad': nombreFacultad,
+            'facultad': doc['facultad'],
             'id_Profesor': doc['profesor'],
             'id_Facultad': doc['facultad'],
             'nro_alumnos': doc['nro_alumnos'],

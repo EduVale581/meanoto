@@ -235,6 +235,9 @@ async function getModulos2() {
         else if (resp.status === 401) {
             return 401;
         }
+        else if (resp.status === 300) {
+            return 300;
+        }
         else if (resp.status === 200) {
             const data = await resp.json();
             return data;
@@ -298,6 +301,50 @@ async function crearNuevoModulo(nombre, facultadSeleccionadaModal, nro_alumnos, 
         return -1;
 
     }
+};
+
+async function crearNuevoModulo2(nombre, facultadSeleccionadaModal, nro_alumnos, carreraSeleccionadaModal) {
+    const token = window.localStorage.getItem('token');
+
+    try {
+        let nuevoModulo = {
+            nombre: nombre,
+            profesor: "",
+            facultad: facultadSeleccionadaModal,
+            nro_alumnos: nro_alumnos,
+            eventos: [],
+            carrera: carreraSeleccionadaModal
+        }
+        const resp = await fetch(`${API}/modulos`, {
+            method: 'POST',
+            headers: {
+                "Content-Type": "application/json",
+                'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify(nuevoModulo),
+        })
+        if (!resp.ok) return -1;
+
+        else if (resp.status === 403) {
+            return 403;
+        }
+        else if (resp.status === 401) {
+            return 401;
+        }
+        else if (resp.status === 200) {
+            const data = await resp.json();
+            return data;
+        }
+        else {
+            return -1;
+        }
+
+    }
+    catch {
+        return -1;
+
+    }
+
 };
 
 async function guardarCantidadEstudiantes(id, cantEstudiantes, profesorSeleccionado, setLoadingEditar, setOpenEditarCantidadAlumnos, setModulosArreglo, setModulosMostrar, setModulosServidor, facultadSeleccionadaFiltro, carreraSeleccionadaFiltro) {
@@ -1272,6 +1319,7 @@ export default {
     crearCarrera,
     crearFacultad,
     eliminarFacultad,
+    crearNuevoModulo2,
     dbx,
     API
 };
