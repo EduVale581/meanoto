@@ -464,6 +464,51 @@ async function crearProfesor(payload) {
     }
 }
 
+async function crearCarrera(nombre, idFacultad) {
+    try {
+        const token = window.localStorage.getItem('token');
+        const resp = await fetch(`${API}/carreras`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify({ nombre: nombre, idFacultad: idFacultad }),
+        });
+
+
+
+        if (resp.status === 403) {
+            return 403;
+        }
+        else if (resp.status === 401) {
+            return 401;
+
+        }
+        else if (resp.status === 300) {
+            return 300;
+
+        }
+        else if (resp.status === 200) {
+            const data = await resp.json();
+            return data;
+        }
+        else if (resp.status === 300) {
+            return 300;
+
+        }
+        else if (!resp.ok) return -1;
+        else {
+            return -1;
+        }
+
+    }
+    catch {
+        return -1;
+
+    }
+}
+
 async function actualizarSala(sala) {
     try {
         const token = window.localStorage.getItem('token');
@@ -813,6 +858,23 @@ async function getFacultades() {
     }
 };
 
+async function eliminarFacultad(id) {
+    try {
+        const token = window.localStorage.getItem('token');
+        const resp = await fetch(`${API}/facultades/${id}`, {
+            method: "DELETE",
+            headers: {
+                "Content-Type": "application/json",
+                'Authorization': 'Bearer ' + token
+            },
+        });
+        return resp.status;
+    }
+    catch {
+        return -1;
+    }
+}
+
 async function validarEstudiante(id, validado) {
     try {
         const token = window.localStorage.getItem('token');
@@ -900,6 +962,44 @@ async function crearSala(sala) {
                 'Authorization': 'Bearer ' + token
             },
             body: JSON.stringify(sala)
+        })
+
+
+        if (resp.status === 403) {
+            return 403;
+        }
+        else if (resp.status === 401) {
+            return 401;
+        }
+        else if (resp.status === 300) {
+            return 300;
+        }
+        else if (resp.status === 200) {
+            const data = await resp.json();
+            return data;
+        }
+        else if (!resp.ok) return -1;
+        else {
+            return -1;
+        }
+    }
+    catch {
+        return -1;
+
+    }
+};
+
+async function crearFacultad(facultad) {
+    try {
+        const token = window.localStorage.getItem('token');
+
+        const resp = await fetch(`${API}/facultades`, {
+            method: 'POST',
+            headers: {
+                "Content-Type": "application/json",
+                'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify(facultad)
         })
 
 
@@ -1138,7 +1238,8 @@ export {
     getProfesores,
     crearProfesor,
     eliminarProfesor,
-    obtenerModulos
+    obtenerModulos,
+
 };
 
 export default {
@@ -1168,6 +1269,9 @@ export default {
     eliminarSala,
     actualizarSala,
     modificarSalaEvento,
+    crearCarrera,
+    crearFacultad,
+    eliminarFacultad,
     dbx,
     API
 };
