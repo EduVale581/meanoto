@@ -37,7 +37,7 @@ export default function Router() {
     },
     {
       path: '/',
-      element: !token ? <LogoOnlyLayout /> : <Navigate to="/app/dashboard" />,
+      element: !token ? <LogoOnlyLayout /> : <Navigate to="/dashboard/app" />,
       children: [
         { path: 'login', element: <Login /> },
         { path: 'register', element: <Register /> },

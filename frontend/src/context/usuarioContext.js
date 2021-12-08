@@ -32,6 +32,12 @@ export function UsuarioProvider(props) {
                 window.location.href = "/login"
 
             }
+            else if (data === 300) {
+                window.localStorage.removeItem("token");
+                window.localStorage.removeItem("user");
+                window.location.href = "/login"
+
+            }
             else {
                 setUser(data);
             }
