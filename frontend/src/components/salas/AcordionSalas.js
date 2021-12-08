@@ -260,7 +260,6 @@ export default function AcordionSalas({ sala, setSalasMostrar, setSalasArreglo, 
                         <React.Fragment>
                             <Typography
                                 sx={{ display: 'inline' }}
-                                component="span"
                                 variant="h4"
                                 color="text.primary"
                             >
@@ -273,7 +272,6 @@ export default function AcordionSalas({ sala, setSalasMostrar, setSalasArreglo, 
                             <Stack>
                                 <Typography
                                     sx={{ display: 'inline' }}
-                                    component="span"
                                     variant="body1"
                                     color={aforoActual > aforo ? "common.red" : "common.green"}
                                 >
@@ -281,7 +279,7 @@ export default function AcordionSalas({ sala, setSalasMostrar, setSalasArreglo, 
                                 </Typography>
                                 <Typography
                                     sx={{ display: 'inline' }}
-                                    component="span"
+
                                     variant="body1"
                                     color="primary"
                                 >
@@ -289,7 +287,7 @@ export default function AcordionSalas({ sala, setSalasMostrar, setSalasArreglo, 
                                 </Typography>
                                 <Typography
                                     sx={{ display: 'inline' }}
-                                    component="span"
+
                                     variant="body1"
                                     color="text.primary"
                                 >
@@ -298,7 +296,7 @@ export default function AcordionSalas({ sala, setSalasMostrar, setSalasArreglo, 
 
                                 <Typography
                                     sx={{ display: 'inline' }}
-                                    component="span"
+
                                     variant="body1"
                                     color="text.primary"
                                 >

@@ -12,6 +12,7 @@ import Salas from './pages/Salas';
 import Modulos from './pages/Modulos';
 import Profesores from './pages/Profesores';
 import Estudiantes from './pages/Estudiantes';
+import Facultades from './pages/Facultades';
 import { UsuarioProvider } from './context/usuarioContext';
 import RecuperarContrasena from './pages/RecuperarContrasena';
 
@@ -31,6 +32,7 @@ export default function Router() {
         { path: 'modulo', element: <Modulos /> },
         { path: 'profesores', element: <Profesores /> },
         { path: 'estudiantes', element: <Estudiantes /> },
+        { path: 'facultades', element: <Facultades /> },
       ]
     },
     {

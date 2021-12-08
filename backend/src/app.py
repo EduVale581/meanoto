@@ -119,7 +119,7 @@ def modificarSalaEvento(id):
 @app.route('/modulos', methods=['POST'])
 @jwt_required()
 def agregarNuevoModulo():
-    moduloExistente = db.db.modulos.find_one({"facultad": request.json['facultad'], "carrera": request.json['carrera'] })
+    moduloExistente = db.db.modulos.find_one({"facultad": request.json['facultad'], "carrera": request.json['carrera'], "nombre": request.json['nombre'] })
     if moduloExistente is None:
         id = db.db.modulos.insert({
             'nombre': request.json['nombre'],
@@ -132,6 +132,30 @@ def agregarNuevoModulo():
         return jsonify({'message': 'Módulo ingresado con éxito'}), 200
     else:
         return jsonify({'message': 'El módulo ingresado, ya se encuentra en nuestro registros'}), 200
+
+@app.route('/carreras', methods=['POST'])
+@jwt_required()
+def agregarCarrera():
+    carreraExiste = db.db.carreras.find_one({"nombre": request.json['nombre']})
+    facultad = db.db.facultades.find_one({"_id": ObjectId(request.json['idFacultad'])})
+    if carreraExiste is None:
+        id = db.db.carreras.insert({
+            'nombre': request.json['nombre'],
+            'modulos': []
+        })
+        if facultad is not None:
+            carerasObtenida = facultad['carreras']
+            carrerasNueva = []
+            carrerasNueva.append(ObjectId(id))
+            for doc in carerasObtenida:
+                carrerasNueva.append(ObjectId(doc))
+            db.db.facultades.update_one({'_id': ObjectId(request.json['idFacultad'])}, {"$set": {
+            'carreras': carrerasNueva
+        }})
+
+        return jsonify({'message': 'Carrera ingresada con éxito'}), 200
+    else:
+        return jsonify({'message': 'La carrera ingresada, ya se encuentra en nuestro registros'}), 300
 
 @app.route('/modulos/<id>', methods=['DELETE'])
 @jwt_required()
@@ -146,7 +170,6 @@ def getModulos():
     for doc in db.db.modulos.find():
         idModulo =  doc['_id']
         profesor = db.db.profesores.find_one({"_id": doc['profesor']})
-        facultad = db.db.facultades.find_one({"_id": doc['facultad']})
         estudiantesArreglo = []
         for doc2 in db.db.estudiantes.find({"modulos": idModulo}):
             estudiantesArreglo.append({
@@ -160,17 +183,14 @@ def getModulos():
                 'eventos': doc2['eventos'],
             })
         nombreProfesor = ""
-        nombreFacultad = ""
         if profesor is not None:
             nombreProfesor = profesor['nombre']+" "+profesor['apellido']
-        if facultad is not None:
-            nombreFacultad = facultad['nombre']
 
         modulos.append({
             'id': idModulo,
             'nombre': doc['nombre'],
             'profesor': nombreProfesor,
-            'facultad': nombreFacultad,
+            'facultad': doc['facultad'],
             'id_Profesor': doc['profesor'],
             'id_Facultad': doc['facultad'],
             'nro_alumnos': doc['nro_alumnos'],
@@ -204,7 +224,7 @@ def getProfesores():
 def agregarNuevoProfesor():
     profesorExistente = db.db.profesores.find_one({"rut": request.json['rut']})
     if profesorExistente is None:
-        id = db.db.profesores.insert_one({
+        id = db.db.profesores.insert({
             'nombre': request.json['nombre'],
             'apellido': request.json['apellido'],
             'rut': request.json['rut'],
@@ -212,6 +232,14 @@ def agregarNuevoProfesor():
             'contrasena':request.json['contrasena'],
             'eventos':request.json['eventos'],
             'modulos':request.json['modulos'],
+        })
+        id2 = db.db.usuarios.insert({
+            'contrasena': request.json['contrasena'],
+            'correo':request.json['correo'],
+            'refId':ObjectId(id),
+            'rut': request.json['rut'],
+            'tipo_usuario':"PROFESOR",
+            'validado':True
         })
         return jsonify({'message': 'Profesor ingresado con éxito', 'id':id}), 200
     else:
@@ -221,6 +249,7 @@ def agregarNuevoProfesor():
 @jwt_required()
 def eliminarProfesor(id):
     db.db.profesores.delete_one({'_id': ObjectId(id)})
+    db.db.usuarios.delete_one({'refId': ObjectId(id)})
     return jsonify({'message': 'Profesor Eliminado'}), 200
 
 @app.route('/facultades', methods=['GET'])
@@ -242,6 +271,25 @@ def getFacultades():
         })
 
     return jsonify(facultades), 200
+
+@app.route('/facultades/<id>', methods=['DELETE'])
+@jwt_required()
+def eliminarFacultad(id):
+    db.db.facultades.delete_one({'_id': ObjectId(id)})
+    return jsonify({'message': 'Facultad Eliminado'}), 200
+
+@app.route('/facultades', methods=['POST'])
+@jwt_required()
+def agregarNuevaFacultad():
+    facultadExiste = db.db.facultades.find_one({"nombre": request.json['nombre']})
+    if facultadExiste is None:
+        id = db.db.facultades.insert_one({
+            'nombre': request.json['nombre'],
+            'carreras': [],
+        })
+        return jsonify({'message': 'Facultad ingresada con éxito'}), 200
+    else:
+        return jsonify({'message': 'La facultad ingresado ya se encuentra en nuestros registros'}), 200
 
 @app.route('/estudiantes', methods=['GET'])
 @jwt_required()

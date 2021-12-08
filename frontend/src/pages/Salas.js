@@ -32,6 +32,8 @@ import React, { useEffect, useState } from 'react';
 import AcordionSalas from 'src/components/salas/AcordionSalas';
 import Api from "../api/Api"
 import { useUsuario } from 'src/context/usuarioContext';
+import * as XLSX from 'xlsx';
+import ExportJsonExcel from 'js-export-excel'
 
 const Input = styled('input')({
   display: 'none',
@@ -46,9 +48,13 @@ export default function Salas() {
   const { user, setUser, setCargandoUsuario } = useUsuario();
 
   const [openCrearSala, setOpenCrearSala] = useState(false);
+  const [openCargarArchivo, setOpenCargarArchivo] = useState(false);
   const [facultadSeleccionadaModal, setFacultadSeleccionadaModal] = useState("");
   const [facultadSeleccionadaFiltro, setFacultadSeleccionadaFiltro] = useState("Sin filtro");
+  const [facultadSeleccionadaSubirArchivo, setFacultadSeleccionadaSubirArchivo] = useState("");
   const [error, setError] = useState(false);
+
+  const [error2, setError2] = useState(false);
 
 
   const [facultadesArreglo, setFacultades] = useState([]);
@@ -60,41 +66,107 @@ export default function Salas() {
   const [aforoSala, setAforoSala] = useState(0);
   const [metrosCuadradoSala, setMetrosCuadradosSala] = useState(0);
 
-  async function obtenerUsuarioNull() {
-    if (!user) {
-      const token = window.localStorage.getItem("token");
-      const idUsuario = window.localStorage.getItem("user");
-      const data = await Api.cargarUsuario(token, idUsuario);
+  const exportToCSV = () => {
+    let option = {};
+    let fecha = new Date();
+    let nombreFecha = (fecha.getMonth() + 1) + "_" + fecha.getFullYear()
+
+    option.fileName = 'salas_' + nombreFecha; // nombre de archivo
+    option.datas = [
+      {
+        sheetData: [], // datos
+        sheetName: 'Salas', // nombre de la hoja
+        sheetHeader: ['Nombre', 'Aforo', 'Metros Cuadrados'], // encabezado de la primera fila
+        //columnWidths: [20, 20] // el ancho de la columna debe corresponder al orden de la columna
+      },
+    ];
+    const toExcel = new ExportJsonExcel(option); //new
+    toExcel.saveExcel(); // Guardar
+  }
+
+  const leerArchivo = (file) => {
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      let facultadObtenida = facultadesArreglo.filter((e) => e.nombre === facultadSeleccionadaSubirArchivo)[0];
+      /* Parse data */
+      const bstr = evt.target.result;
+      const wb = XLSX.read(bstr, { type: 'binary' });
+      /* Get first worksheet */
+      const wsname = wb.SheetNames[0];
+      const ws = wb.Sheets[wsname];
+      /* Convert array of arrays */
+      const data = XLSX.utils.sheet_to_csv(ws, { header: 1 });
+      /* Update state */
+      let obtencion = data.split('\n');
+      let elementosNoGuardados = 0;
+      obtencion.forEach((element, idx) => {
+        if (element === "" || element === " " || idx === 0) {
 
 
-      if (data === 401) {
-        window.localStorage.removeItem("token");
-        window.localStorage.removeItem("user");
-        window.location.href = "/login"
+        }
+        else {
+          if (element.includes(",") && element.split(',').length === 3) {
+            let datos = element.split(',');
+            let numeroAforo = 0;
+            let numeroMetros = 0;
+            try {
+              numeroAforo = Number.parseInt(datos[1])
+            }
+            catch {
+              numeroAforo = 0;
+
+            }
+            try {
+              numeroMetros = Number.parseInt(datos[2])
+            }
+            catch {
+              numeroMetros = 0;
+
+            }
+            let salaCrear = {
+              nombre: datos[0],
+              aforo: numeroAforo,
+              facultad: facultadObtenida.id,
+              estado: "DISPONIBLE",
+              aforoActual: 0,
+              metrosCuadrados: numeroMetros
+            }
+
+            Api.crearSala(salaCrear).then(() => {
+
+            }).catch(() => {
+              elementosNoGuardados = elementosNoGuardados + 1
+            })
+
+          }
+          else {
+            elementosNoGuardados = elementosNoGuardados + 1
+          }
+
+        }
+
+      });
+      if (elementosNoGuardados > 0) {
+        setError2("No se guardaron " + elementosNoGuardados + " elementos")
       }
-      else if (data === 403) {
-        window.localStorage.removeItem("token");
-        window.localStorage.removeItem("user");
-        window.location.href = "/login"
+      setError2("Datos cargados. CERRAR VENTANA")
 
-      }
-      else if (data === -1) {
-        window.localStorage.removeItem("token");
-        window.localStorage.removeItem("user");
-        window.location.href = "/login"
 
-      }
-      else {
-        setUser(data);
-        setCargandoUsuario(false);
-      }
 
-    }
-
+    };
+    reader.readAsBinaryString(file);
 
   }
 
-  obtenerUsuarioNull()
+  const handleChangeNombreArchivo = (event) => {
+    if (event.target.files[0] && event.target.files[0].type === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") {
+      leerArchivo(event.target.files[0])
+    }
+    else {
+      setError("Error en el archivo")
+    }
+
+  };
 
   const handleChangeNombreSala = (event) => {
     setNombreSala(event.target.value);
@@ -126,6 +198,11 @@ export default function Salas() {
 
   };
 
+  const handleChangeFacultadSubirArchivo = (event) => {
+    setFacultadSeleccionadaSubirArchivo(event.target.value);
+
+  };
+
   const [valueMIN, setValueMIN] = useState(60);
 
 
@@ -153,6 +230,31 @@ export default function Salas() {
 
   const handleOpenSala = () => setOpenCrearSala(true);
   const handleCloseSala = () => setOpenCrearSala(false);
+  const handleOpenSeleccionarFacultad = () => setOpenCargarArchivo(true);
+  const handleCloseSeleccionarFacultad = async () => {
+    const data2 = await Api.obtenerSalas();
+    if (data2 === 401) {
+      window.localStorage.removeItem("token");
+      window.localStorage.removeItem("user");
+      window.location.href = "/login"
+    }
+    else if (data2 === 403) {
+      window.localStorage.removeItem("token");
+      window.localStorage.removeItem("user");
+      window.location.href = "/login"
+
+    }
+    else if (data2 === -1 || data2 === 300) {
+      setError2("Error en el servidor");
+
+    }
+    else {
+      setSalasMostrar(data2)
+      setSalasArreglo(data2)
+      setOpenCargarArchivo(false);
+
+    }
+  };
   const crearSala = async () => {
     let correcto = true;
     try {
@@ -320,21 +422,20 @@ export default function Salas() {
             </Button>)
           }
         </Stack>
+
         {user && user.tipo_usuario === "ADMIN" && (
           <Grid container spacing={2} style={{ marginBottom: 10 }}>
             <Grid item xs={12} style={{ marginBottom: 10 }}>
               <Paper elevation={3} >
                 <Grid container spacing={2}>
                   <Grid item xs={6} md={6} style={{ marginBottom: 10 }}>
-                    <label htmlFor="contained-button-file">
-                      <Input accept="image/*" id="contained-button-file" multiple type="file" />
-                      <Button variant="contained" component="span" fullWidth>
-                        Subir salas desde archivo
-                      </Button>
-                    </label>
+
+                    <Button variant="contained" onClick={handleOpenSeleccionarFacultad} fullWidth>
+                      Subir salas desde archivo
+                    </Button>
                   </Grid>
                   <Grid item xs={6} md={6} style={{ marginBottom: 10 }}>
-                    <Button variant="contained" color="inherit" fullWidth>
+                    <Button variant="contained" color="inherit" fullWidth onClick={exportToCSV}>
                       Descargar plantilla
                     </Button>
                   </Grid>
@@ -368,7 +469,7 @@ export default function Salas() {
             </Grid>
             <Grid item xs={4} md={4} style={{ marginLeft: 10, marginBottom: 10 }}>
               <Grid item>
-                <Typography id="input-slider" gutterBottom>
+                <Typography gutterBottom>
                   Aforo
                 </Typography>
               </Grid>
@@ -400,7 +501,7 @@ export default function Salas() {
             </Grid>
             <Grid item xs={3} md={3} style={{ marginLeft: 10, marginBottom: 10 }}>
               <Grid item>
-                <Typography id="input-Switch" gutterBottom>
+                <Typography gutterBottom>
                   Disponible
                 </Typography>
               </Grid>
@@ -427,6 +528,63 @@ export default function Salas() {
         </List>
 
       </Container>
+
+      <Dialog
+        open={openCargarArchivo}
+        fullWidth
+      >
+        <DialogTitle>
+          Seleccionar Facultad Asociada
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            <Grid container xs={12} spacing={2}>
+              <Grid item xs={12} style={{ marginLeft: 10, marginTop: 10 }}>
+                <FormControl fullWidth>
+                  <InputLabel id="selectFacultadesFiltro">Facultades</InputLabel>
+                  <Select
+                    labelId="selectFacultadesFiltro"
+                    id="demo-simple-select"
+                    value={facultadSeleccionadaSubirArchivo}
+                    label="Facultades"
+                    onChange={handleChangeFacultadSubirArchivo}
+                  >
+                    <MenuItem value={""}>Sin Facultad</MenuItem>
+                    {facultadesArreglo.map((e, index) => {
+                      return (<MenuItem key={index} value={e.nombre}>{e.nombre}</MenuItem>);
+
+                    })}
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} style={{ marginLeft: 10, marginTop: 10 }}>
+                <label htmlFor="contained-button-file">
+                  <Input
+                    accept="*"
+                    id="contained-button-file"
+                    type="file"
+                    onChange={handleChangeNombreArchivo}
+                  />
+                  <Button
+                    variant="contained"
+                    component="span"
+                    fullWidth
+                    disabled={facultadSeleccionadaSubirArchivo === "" ? true : false}
+                  >
+                    Subir salas desde archivo
+                  </Button>
+                </label>
+
+              </Grid>
+
+            </Grid>
+          </DialogContentText>
+        </DialogContent>
+        {error2 && <Alert severity="error">{error2}</Alert>}
+        <DialogActions>
+          <Button onClick={handleCloseSeleccionarFacultad} color="secondary">Cerrar</Button>
+        </DialogActions>
+      </Dialog>
 
 
       <Dialog
