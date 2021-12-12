@@ -171,17 +171,20 @@ def getModulos():
         idModulo =  doc['_id']
         profesor = db.db.profesores.find_one({"_id": doc['profesor']})
         estudiantesArreglo = []
-        for doc2 in db.db.estudiantes.find({"modulos": idModulo}):
-            estudiantesArreglo.append({
-                'id': doc2['_id'],
-                'nombre': doc2['nombre'],
-                'apellidos': doc2['apellido'],
-                'modulos': doc2['modulos'],
-                'rut': doc2['rut'],
-                'correo': doc2['correo'],
-                'matricula': doc2['matricula'],
-                'eventos': doc2['eventos'],
-            })
+        try:
+            for doc2 in db.db.estudiantes.find({"modulos": {"$all":[ObjectId(idModulo)]}}):
+                estudiantesArreglo.append({
+                    'id': doc2['_id'],
+                    'nombre': doc2['nombre'],
+                    'apellidos': doc2['apellido'],
+                    'modulos': doc2['modulos'],
+                    'rut': doc2['rut'],
+                    'correo': doc2['correo'],
+                    'matricula': doc2['matricula'],
+                    'eventos': doc2['eventos'],
+                })
+        except:
+            pass
         nombreProfesor = ""
         if profesor is not None:
             nombreProfesor = profesor['nombre']+" "+profesor['apellido']
@@ -199,6 +202,44 @@ def getModulos():
             'estudiantes': estudiantesArreglo,
         })
     return jsonify(modulos), 200
+
+@app.route('/asistentesEvento/<id>', methods=['GET'])
+@jwt_required()
+def getAsistenteEvento(id):
+    evento = db.db.eventos.find_one({"_id": ObjectId(id)})
+    asistentes = []
+    if evento['asistentes'] is not None:
+        for doc in evento['asistentes']:
+
+            estudiante = db.db.estudiantes.find_one({"_id": ObjectId(doc)})
+
+            if estudiante is not None:
+                asistentes.append({
+                    'id': doc,
+                    'nombre': estudiante['nombre'] + ' ' + estudiante['apellido'],
+                })
+    return jsonify(asistentes), 200
+
+@app.route('/asistentesEvento', methods=['POST'])
+@jwt_required()
+def agregarAsistenteEvento():
+    evento = db.db.eventos.find_one({"_id": ObjectId(request.json['idEvento'])})
+    if evento is not None:
+        asistentes = []
+        print (request.json['asistentes'])
+        for doc in request.json['asistentes']:
+            try:
+                estudiante = db.db.estudiantes.find_one({"_id": ObjectId(doc['id'])})
+                if estudiante is not None:
+                    asistentes.append(ObjectId(doc['id']))
+            except:
+                pass
+        db.db.eventos.update_one({'_id': ObjectId(request.json['idEvento'])}, {"$set": {
+            'asistentes': asistentes
+        }})
+    return jsonify({'message': 'Datos actualizados con éxito'}), 200
+
+
 
 @app.route('/profesores', methods=['GET'])
 @jwt_required()
@@ -345,6 +386,55 @@ def getEstudiantes():
         })
 
     return jsonify(estudiantes), 200
+
+@app.route('/estudiantes2', methods=['GET'])
+@jwt_required()
+def getEstudiantes2():
+    estudiantes = []
+    for doc in db.db.estudiantes.find():
+        estudiantes.append({
+            'id': doc['_id'],
+            'apellido': doc['apellido'],
+            'nombre': doc['nombre'],
+        })
+
+    return jsonify(estudiantes), 200
+
+@app.route('/eliminarModuloEstudiante', methods=['POST'])
+@jwt_required()
+def eliminarModuloEstudiante():
+    try:
+        estudiante = db.db.estudiantes.find_one({'_id': ObjectId(request.json['idEstudiante'])})
+        if estudiante is not None:
+            arreglo = estudiante['modulos']
+            modulosEstudiante = []
+            for doc in arreglo:
+                if ObjectId(request.json['idModulo']) == ObjectId(doc):
+                    pass    
+                else:
+                    modulosEstudiante.append(ObjectId(doc))
+                    
+            db.db.estudiantes.update_one({'_id': ObjectId(request.json['idEstudiante'])}, {"$set": {
+                'modulos': modulosEstudiante
+            }})
+            return jsonify({'message': 'Datos actulizados'}), 200
+        else:
+            return jsonify({'message': 'Error'}), 300
+        
+    except:
+        return jsonify({'message': 'Error'}), 300
+
+
+@app.route('/agregarModuloEstudiante', methods=['POST'])
+@jwt_required()
+def agregarModuloEstudiante():
+    try:
+        db.db.estudiantes.update_one({'_id': ObjectId(request.json['idEstudiante'])}, {"$push": {
+            'modulos': {"$each":[ObjectId(request.json['idModulo'])]}
+        }})
+        return jsonify({'message': 'Datos actulizados'}), 200
+    except:
+        return jsonify({'message': 'Error'}), 300
 
 @app.route('/estudiantes/<id>', methods=['DELETE'])
 @jwt_required()

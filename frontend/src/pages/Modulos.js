@@ -512,7 +512,7 @@ export default function Modulos() {
         </DialogTitle>
         <DialogContent>
           <DialogContentText id="alert-dialog-description">
-            <Grid container xs={12} spacing={2}>
+            <Grid container spacing={2}>
               <Grid item xs={12} style={{ marginLeft: 10, marginTop: 10 }}>
                 <TextField
                   value={nombre}

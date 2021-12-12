@@ -17,7 +17,6 @@ import Api from '../../api/Api';
 import { LoadingButton } from '@mui/lab';
 
 export default function RoomAssignmentDialog({ open, handleClose, event }) {
-  console.log(event)
 
   const [facultades, setFacultades] = useState(null);
   const [salas, setSalas] = useState(null);

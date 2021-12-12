@@ -14,6 +14,7 @@ import Tooltip from '@mui/material/Tooltip';
 import Grid from '@mui/material/Grid';
 import EventSeatIcon from '@mui/icons-material/EventSeat';
 import AddLocationIcon from '@mui/icons-material/AddLocation';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { esES } from '@mui/material/locale';
 import { visuallyHidden } from '@mui/utils';
@@ -22,6 +23,7 @@ import { useUsuario } from '../../context/usuarioContext';
 
 import SearchBar from '../SearchBar';
 import RoomAssignmentDialog from './RoomAssignmentDialog';
+import EstudiantesAsistencia from './EstudiantesAsistencia';
 
 const theme = createTheme(
   {
@@ -148,6 +150,10 @@ export default function EventSearchTable({ events }) {
     false
   );
 
+  const [mostrarEstudianteAsistencia, setMostrarEstudiateAsistencia] = useState(
+    false
+  );
+
   const { user } = useUsuario();
 
   useEffect(() => {
@@ -167,7 +173,6 @@ export default function EventSearchTable({ events }) {
   };
 
   const handleClick = (event, row) => {
-    // console.log("la row", row);
     setSelectedId(row.id);
     setSelectedRow(row);
   };
@@ -189,6 +194,10 @@ export default function EventSearchTable({ events }) {
 
   const handleAddLocation = (row) => {
     setShowRoomAssignmentDialog(true);
+  };
+
+  const handleEstudianteAsistencia = (row) => {
+    setMostrarEstudiateAsistencia(true);
   };
 
   // function createData(id, nombre, modulo, profesor, sala, fecha) {
@@ -252,7 +261,6 @@ export default function EventSearchTable({ events }) {
                 .map((row, index) => {
                   const isItemSelected = isSelected(row.name);
                   const labelId = `enhanced-table-checkbox-${index}`;
-                  console.log(row.sala)
 
                   return (
                     <TableRow
@@ -301,6 +309,21 @@ export default function EventSearchTable({ events }) {
                             <EventSeatIcon />
                           </IconButton>
                         </Tooltip>
+
+                        {user.tipo_usuario === 'ESTUDIANTE' ? (
+                          <div></div>
+
+                        ) : (
+
+                          <Tooltip title="Visualizar">
+                            <IconButton onClick={() => handleEstudianteAsistencia(row)}>
+                              <VisibilityIcon />
+                            </IconButton>
+                          </Tooltip>
+
+                        )}
+
+
                       </TableCell>
                     </TableRow>
                   );
@@ -331,6 +354,14 @@ export default function EventSearchTable({ events }) {
         <RoomAssignmentDialog
           open={showRoomAssignmentDialog}
           handleClose={() => setShowRoomAssignmentDialog(false)}
+          event={events[0]}
+        />
+      )}
+
+      {mostrarEstudianteAsistencia && (
+        <EstudiantesAsistencia
+          open={mostrarEstudianteAsistencia}
+          handleClose={() => setMostrarEstudiateAsistencia(false)}
           event={events[0]}
         />
       )}

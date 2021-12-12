@@ -84,6 +84,20 @@ export default function Facultades() {
         }
         else {
           Api.crearFacultad({ nombre: element }).then(() => {
+            Api.getFacultades().then((data2) => {
+              if (data2 === 401 || data2 === 403) {
+
+              }
+              else if (data2 === -1 || data2 === 300) {
+                setError("Error en el servidor")
+
+              }
+              else {
+                setFacultades(data2)
+              }
+
+            }).catch(() => {
+            });
 
           }).catch(() => {
             elementosNoGuardados = elementosNoGuardados + 1
@@ -95,33 +109,7 @@ export default function Facultades() {
         setError("No se guardaron " + elementosNoGuardados + " elementos")
       }
 
-      Api.getFacultades().then((data2) => {
-        if (data2 === 401) {
-          window.localStorage.removeItem("token");
-          window.localStorage.removeItem("user");
-          window.location.href = "/login"
-        }
-        else if (data2 === 403) {
-          window.localStorage.removeItem("token");
-          window.localStorage.removeItem("user");
-          window.location.href = "/login"
 
-        }
-        else if (data2 === -1) {
-          setError("Error en el servidor")
-
-        }
-        else if (data2 === 300) {
-          setError("Error en el servidor")
-
-        }
-        else {
-          setFacultades(data2)
-        }
-
-      }).catch(() => {
-        setError("Error en el servidor")
-      });
     };
     reader.readAsBinaryString(file);
   }
