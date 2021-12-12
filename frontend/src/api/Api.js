@@ -141,6 +141,86 @@ async function actulizarContrasena(datos) {
     }
 }
 
+async function agregarModuloEstudiante(datos) {
+    try {
+        const token = window.localStorage.getItem('token');
+        const resp = await fetch(`${API}/agregarModuloEstudiante`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify(datos),
+        });
+
+        if (resp.status === 403) {
+            return 403;
+        }
+        else if (resp.status === 401) {
+            return 401;
+
+        }
+        else if (resp.status === 300) {
+            return 300;
+
+        }
+        else if (!resp.ok) { return -1 }
+        else if (resp.status === 200) {
+            const data = await resp.json();
+            return data;
+
+        }
+        else {
+            return -1;
+        }
+
+    }
+    catch {
+        return -1;
+
+    }
+}
+
+async function eliminarModuloEstudiante(datos) {
+    try {
+        const token = window.localStorage.getItem('token');
+        const resp = await fetch(`${API}/eliminarModuloEstudiante`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify(datos),
+        });
+
+        if (resp.status === 403) {
+            return 403;
+        }
+        else if (resp.status === 401) {
+            return 401;
+
+        }
+        else if (resp.status === 300) {
+            return 300;
+
+        }
+        else if (!resp.ok) { return -1 }
+        else if (resp.status === 200) {
+            const data = await resp.json();
+            return data;
+
+        }
+        else {
+            return -1;
+        }
+
+    }
+    catch {
+        return -1;
+
+    }
+}
+
 async function registroEstudiante(bodyFetch) {
     try {
         const resp = await fetch(`${API}/registro`, {
@@ -679,6 +759,75 @@ async function eliminarSala(id) {
     }
 }
 
+async function obtenerAsistentesEvento(id) {
+    try {
+        const token = window.localStorage.getItem('token');
+        const resp = await fetch(`${API}/asistentesEvento/${id}`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                'Authorization': 'Bearer ' + token
+            },
+        });
+
+
+        if (resp.status === 403) {
+            return 403;
+        }
+        else if (resp.status === 401) {
+            return 401;
+        }
+        else if (resp.status === 300) {
+            return 300;
+        }
+        else if (resp.status === 200) {
+            return await resp.json();
+        }
+        if (!resp.ok) return -1;
+        else {
+            return -1;
+        }
+    }
+    catch {
+        return -1;
+    }
+}
+
+async function modificarAsistentesEvento(body) {
+    try {
+        const token = window.localStorage.getItem('token');
+        const resp = await fetch(`${API}/asistentesEvento`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify(body)
+        });
+
+
+        if (resp.status === 403) {
+            return 403;
+        }
+        else if (resp.status === 401) {
+            return 401;
+        }
+        else if (resp.status === 300) {
+            return 300;
+        }
+        else if (resp.status === 200) {
+            return await resp.json();
+        }
+        if (!resp.ok) return -1;
+        else {
+            return -1;
+        }
+    }
+    catch {
+        return -1;
+    }
+}
+
 async function obtenerModulos() {
     try {
         const token = window.localStorage.getItem('token');
@@ -874,6 +1023,46 @@ async function getEstudiantes() {
         const token = window.localStorage.getItem('token');
 
         const resp = await fetch(`${API}/estudiantes`, {
+            method: 'GET',
+            headers: {
+                "Content-Type": "application/json",
+                'Authorization': 'Bearer ' + token
+            }
+        })
+
+
+        if (resp.status === 403) {
+            return 403;
+        }
+        else if (resp.status === 401) {
+            return 401;
+        }
+        else if (resp.status === 300) {
+            return 300;
+        }
+        else if (resp.status === 200) {
+            const data = await resp.json();
+            return data;
+        }
+        else if (!resp.ok) return -1;
+        else {
+            return -1;
+        }
+
+
+
+    }
+    catch {
+        return -1;
+
+    }
+};
+
+async function getEstudiantesModulos() {
+    try {
+        const token = window.localStorage.getItem('token');
+
+        const resp = await fetch(`${API}/estudiantes2`, {
             method: 'GET',
             headers: {
                 "Content-Type": "application/json",
@@ -1365,6 +1554,11 @@ export default {
     eliminarFacultad,
     crearNuevoModulo2,
     actulizarContrasena,
+    obtenerAsistentesEvento,
+    modificarAsistentesEvento,
+    getEstudiantesModulos,
+    agregarModuloEstudiante,
+    eliminarModuloEstudiante,
     dbx,
     API
 };
