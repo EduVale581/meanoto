@@ -19,7 +19,7 @@ import { visuallyHidden } from '@mui/utils';
 
 import SearchBar from '../SearchBar';
 // import RoomAssignmentDialog from './RoomAssignmentDialog';
-//
+
 const theme = createTheme(
   {
     palette: {
@@ -82,12 +82,10 @@ const headCells = [
     id: 'button',
     label: ''
   }
-
 ];
 
 function EnhancedTableHead(props) {
-  const { order, orderBy, onRequestSort } =
-    props;
+  const { order, orderBy, onRequestSort } = props;
   const createSortHandler = (property) => (event) => {
     onRequestSort(event, property);
   };

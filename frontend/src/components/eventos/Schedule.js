@@ -1,102 +1,172 @@
-import * as React from 'react';
+import React, { useState, useEffect } from 'react';
 import Paper from '@mui/material/Paper';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
 // import TablePagination from '@mui/material/TablePagination';
-import TableRow from '@mui/material/TableRow';
+import MyCalendar from './MyCalendar';
+import { useUsuario } from "../../context/usuarioContext";
 
-const columns = [
-  { id: 'bloque', label: 'Bloque', minWidth: 100 },
-  { id: 'lunes', label: 'Lunes', minWidth: 100 },
-  { id: 'martes', label: 'Martes', minWidth: 100 },
-  { id: 'miercoles', label: 'Miércoles', minWidth: 100, },
-  { id: 'jueves', label: 'Jueves', minWidth: 100, },
-  { id: 'viernes', label: 'Viernes', minWidth: 100, },
-  { id: 'sabado', label: 'Sábado', minWidth: 100, },
+const bloques = [
+  {
+    label: '8:30 - 9:30',
+    value: '1'
+  },
+  {
+    label: '9:40 - 10:40',
+    value: '2'
+  },
+  {
+    label: '10:50 - 11:50',
+    value: '3'
+  },
+  {
+    label: '12:00 - 13:00',
+    value: '4'
+  },
+  {
+    label: '13:10 - 14:10',
+    value: '5'
+  },
+  {
+    label: '14:20 - 15:20',
+    value: '6'
+  },
+  {
+    label: '15:30 - 16:30',
+    value: '7'
+  },
+  {
+    label: '16:40 - 17:40',
+    value: '8'
+  },
+  {
+    label: '17:50 - 18:50',
+    value: '9'
+  },
+  {
+    label: '19:00 - 20:00',
+    value: '10'
+  },
+  {
+    label: '20:10 - 21:10',
+    value: '11'
+  }
 ];
 
-function createData(bloque, lunes, martes, miercoles, jueves, viernes, sabado,) {
-  return { bloque, lunes, martes, miercoles, jueves, viernes, sabado };
-}
+export default function Schedule({ events }) {
+  const [eventsList, setEventsList] = useState([]);
 
-const rows = [
-  createData('1', '', ' ', ' ', ' ', ' ', ' '),
-  createData('2', ' ', '', '', '', '', ''),
-  createData('3', '', '', '', '', '', ''),
-  createData('4', '', '', '', '', '', ''),
-  createData('5', '', '', '', '', '', ''),
-  createData('6', '', '', '', '', '', ''),
-  createData('7', '', '', '', '', '', ''),
-  createData('8', '', '', '', '', '', ''),
-  createData('9', '', '', '', '', '', ''),
-  createData('10', '', '', '', '', '', ''),
-  createData('11', '', '', '', '', '', ''),
-];
+  const { user } = useUsuario()
 
-export default function Schedule() {
-  // const [page, setPage] = React.useState(0);
-  // const [rowsPerPage, setRowsPerPage] = React.useState(10);
+  useEffect(() => {
+    const getAllEventDates = function (event) {
+      const allDates = [];
+      const startDate = strDateToDateObj(event.fecha_inicio_recurrencia);
+      const endDate = strDateToDateObj(event.fecha_fin_recurrencia);
 
-  // const handleChangePage = (event, newPage) => {
-  //   setPage(newPage);
-  // };
+      let date = startDate;
+      if (event.tipoRecurrencia === 'Semanal') {
+        while (dateIsBetween(startDate, endDate, date)) {
+          allDates.push(new Date(date.getTime()));
+          date.setDate(date.getDate() + 7)
+        }
+      } else if (event.tipoRecurrencia === 'Mensual') {
+        while (dateIsBetween(startDate, endDate, date)) {
+          allDates.push(new Date(date.getTime()));
+          date.setDate(date.getMonth() + 1)
+        }
+      } else if (event.tipoRecurrencia === 'Diaria') {
+        while (dateIsBetween(startDate, endDate, date)) {
+          allDates.push(new Date(date.getTime()));
+          date.setDate(date.getDate() + 1)
+        }
+      } else {
+        allDates.push(strDateToDateObj(event.fecha_inicio_recurrencia))
+      }
+      return allDates;
+    };
 
-  // const handleChangeRowsPerPage = (event) => {
-  //   setRowsPerPage(+event.target.value);
-  //   setPage(0);
-  // };
+    function getEventInstances(event, dates) {
+      return dates.map(d => (
+        {
+          title: event.nombre,
+          allDay: false,
+          start: getStartDate(event, d),
+          end: getEndDate(event, d)
+        }
+      ));
+    };
+
+    function getStartDate(event, date) {
+      const blockStartTime = getBlockStartTime(event.bloque)
+      const year = date.getYear() + 1900;
+      const month = date.getMonth();
+      const day = date.getDate();
+      const [startHour, startMinute] = blockStartTime.split(':');
+      return new Date(year, month, day, startHour, startMinute);
+    };
+
+    function getEndDate(event, date) {
+      const blockEndTime = getBlockEndTime(event.bloque)
+      const year = date.getYear() + 1900;
+      const month = date.getMonth();
+      const day = date.getDate();
+      const [endHour, endMinute] = blockEndTime.split(':');
+      return new Date(year, month, day, endHour, endMinute);
+    };
+    console.log(events)
+
+    const list = [];
+    let filteredEvents = []
+    if (user.tipo_usuario === "ESTUDIANTE") {
+
+
+      filteredEvents = events.filter(e => e.asistentes.some(a => a === user.refId));
+
+
+    }
+    else if (user.tipo_usuario === "PROFESOR") {
+      filteredEvents = events.filter(e => e.profesor === user.refId);
+
+    } else {
+      filteredEvents = events;
+
+    }
+
+
+
+    filteredEvents.forEach(e => {
+      const all = getAllEventDates(e);
+      const instances = getEventInstances(e, all);
+      instances.forEach(i => list.push(i))
+    });
+    setEventsList(list);
+  }, [events, user.refId]);
+
+
+  function dateIsBetween(min, max, date) {
+    return (
+      date.getTime() <= max.getTime() && date.getTime() >= min.getTime()
+    )
+  }
+
+  function strDateToDateObj(strDate) {
+    const dateArray = strDate.split('/');
+    const year = dateArray[2];
+    const month = dateArray[1];
+    const day = dateArray[0];
+    return new Date(year, parseInt(month) - 1, day);
+  }
+
+  function getBlockStartTime(value) {
+    return bloques.find(b => b.value == value).label.split(' ')[0];
+  }
+
+  function getBlockEndTime(value) {
+    return bloques.find(b => b.value == value).label.split(' ')[2];
+  }
 
   return (
     <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-      <TableContainer sx={{ maxHeight: 440 }}>
-        <Table stickyHeader aria-label="sticky table">
-          <TableHead>
-            <TableRow>
-              {columns.map((column, idx) => (
-                <TableCell
-                  key={idx}
-                  align={column.align}
-                  style={{ minWidth: column.minWidth }}
-                >
-                  {column.label}
-                </TableCell>
-              ))}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {rows
-              // .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              .map((row, idx) => {
-                return (
-                  <TableRow hover key={ idx } role="checkbox" tabIndex={ -1 }>
-                    {columns.map((column) => {
-                      const value = row[column.id];
-                      return (
-                        <TableCell key={column.id} align={column.align}>
-                          {column.format && typeof value === 'number'
-                            ? column.format(value)
-                            : value}
-                        </TableCell>
-                      );
-                    })}
-                  </TableRow>
-                );
-              })}
-          </TableBody>
-        </Table>
-      </TableContainer>
-      {/* <TablePagination */}
-      {/*   rowsPerPageOptions={[10, 25, 100]} */}
-      {/*   component="div" */}
-      {/*   count={rows.length} */}
-      {/*   rowsPerPage={rowsPerPage} */}
-      {/*   page={page} */}
-      {/*   onPageChange={handleChangePage} */}
-      {/*   onRowsPerPageChange={handleChangeRowsPerPage} */}
-      {/* /> */}
+      <MyCalendar events={eventsList} />
     </Paper>
   );
 }

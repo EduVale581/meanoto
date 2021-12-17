@@ -3,6 +3,7 @@ import LocationCityIcon from '@mui/icons-material/LocationCity';
 import HomeIcon from '@mui/icons-material/Home';
 import ClassIcon from '@mui/icons-material/Class';
 import GroupIcon from '@mui/icons-material/Group';
+import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 
 // ----------------------------------------------------------------------
 
@@ -26,7 +27,7 @@ const sidebarConfig = [
     usuarios: ["ADMIN", "OPERATIVO"]
   },
   {
-    title: 'modulos',
+    title: 'módulos',
     path: '/dashboard/modulo',
     icon: <ClassIcon />,
     usuarios: ["ADMIN", "OPERATIVO", "PROFESOR", "ESTUDIANTE"]
@@ -42,6 +43,12 @@ const sidebarConfig = [
     path: '/dashboard/estudiantes',
     icon: <GroupIcon />,
     usuarios: ["ADMIN", "OPERATIVO"]
+  },
+  {
+    title: 'facultades',
+    path: '/dashboard/facultades',
+    icon: <AccountBalanceIcon />,
+    usuarios: ["ADMIN"]
   },
 
 ];

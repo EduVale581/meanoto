@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState} from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Dialog from '@mui/material/Dialog';
@@ -19,10 +19,10 @@ import { validateRut } from '@fdograph/rut-utilities';
 export default function RegistrarProfesorDialog({ onClose, onSave, open }) {
 
   const isMounted = useRef(true);
-  const [ error, setError ] = useState(false);
-  const [ loading, setLoading ] = useState(false);
-  const [ selectedCourses, setSelectedCourses ] = useState([]);
-  const [ modulos, setModulos ] = useState([]);
+  const [error, setError] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [selectedCourses, setSelectedCourses] = useState([]);
+  const [modulos, setModulos] = useState([]);
   const [showPassword, setShowPassword] = useState(false);
 
   const refNombre = useRef();
@@ -39,12 +39,12 @@ export default function RegistrarProfesorDialog({ onClose, onSave, open }) {
   }, []);
 
   const fetchModules = useCallback(
-    async function() {
+    async function () {
       const modulosAux = await obtenerModulos();
-      if(isMounted.current) {
+      if (isMounted.current) {
         setModulos(modulosAux);
       }
-    },[]
+    }, []
   );
 
   useEffect(() => {
@@ -55,31 +55,31 @@ export default function RegistrarProfesorDialog({ onClose, onSave, open }) {
     onClose();
   };
 
-  const handleSave = async() => {
-    if( refNombre.current.value.length === 0 ||
-        refApellido.current.value.length === 0 ||
-        refRut.current.value.length === 0 ||
-        refContrasena.current.value.length === 0 ||
-        refCorreo.current.value.length === 0
+  const handleSave = async () => {
+    if (refNombre.current.value.length === 0 ||
+      refApellido.current.value.length === 0 ||
+      refRut.current.value.length === 0 ||
+      refContrasena.current.value.length === 0 ||
+      refCorreo.current.value.length === 0
     )
       return setError("Todos los campos son obligatorios.");
     const regex = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
-    if( ! refCorreo.current.value.match(regex)  ) {
+    if (!refCorreo.current.value.match(regex)) {
       return setError("Correo electrónico inválido.");
     }
 
-    if( refContrasena.current.value !== refConfContrasena.current.value ) {
+    if (refContrasena.current.value !== refConfContrasena.current.value) {
       return setError("Las contraseñas no coinciden.");
     }
 
-    if( selectedCourses.length === 0 ) {
+    if (selectedCourses.length === 0) {
       return setError("Debe asignar al menos un módulo.")
     }
 
     const rut = refRut.current.value.replaceAll('.', '').replaceAll('-', '');
 
-    if(! validateRut(rut)) {
+    if (!validateRut(rut)) {
       return setError("Rut inválido.");
     }
 
@@ -90,7 +90,7 @@ export default function RegistrarProfesorDialog({ onClose, onSave, open }) {
       correo: refCorreo.current.value,
       rut,
       contrasena: md5(refContrasena.current.value),
-      modulos: selectedCourses.map( c => c.id ),
+      modulos: selectedCourses.map(c => c.id),
       eventos: [],
     };
 
@@ -99,6 +99,9 @@ export default function RegistrarProfesorDialog({ onClose, onSave, open }) {
       window.localStorage.removeItem("token");
       window.localStorage.removeItem("user");
       window.location.href = "/login"
+    }
+    else if (res === 300 || res === -1) {
+
     }
 
     profesor.id = res.id;
@@ -117,8 +120,8 @@ export default function RegistrarProfesorDialog({ onClose, onSave, open }) {
     setSelectedCourses(data);
   }
 
-  return(
-    <Dialog open={open} onClose={ onClose }>
+  return (
+    <Dialog open={open} onClose={onClose}>
       <DialogTitle>Nuevo Profesor</DialogTitle>
       <DialogContent>
         <TextField
@@ -126,8 +129,8 @@ export default function RegistrarProfesorDialog({ onClose, onSave, open }) {
           fullWidth
           label="Nombre"
           margin="dense"
-          onChange={ () => setError("") }
-          inputRef={ refNombre }
+          onChange={() => setError("")}
+          inputRef={refNombre}
           required
           type="text"
         />
@@ -136,8 +139,8 @@ export default function RegistrarProfesorDialog({ onClose, onSave, open }) {
           fullWidth
           label="Apellido"
           margin="dense"
-          onChange={ () => setError("") }
-          inputRef={ refApellido }
+          onChange={() => setError("")}
+          inputRef={refApellido}
           required
           type="text"
         />
@@ -146,8 +149,8 @@ export default function RegistrarProfesorDialog({ onClose, onSave, open }) {
           fullWidth
           label="Rut"
           margin="dense"
-          onChange={ () => setError("") }
-          inputRef={ refRut }
+          onChange={() => setError("")}
+          inputRef={refRut}
           required
           type="text"
         />
@@ -156,8 +159,8 @@ export default function RegistrarProfesorDialog({ onClose, onSave, open }) {
           fullWidth
           label="Correo"
           margin="dense"
-          onChange={ () => setError("") }
-          inputRef={ refCorreo }
+          onChange={() => setError("")}
+          inputRef={refCorreo}
           required
           type="email"
         />
@@ -168,14 +171,14 @@ export default function RegistrarProfesorDialog({ onClose, onSave, open }) {
           label="Contraseña"
           margin="dense"
           type={showPassword ? 'text' : 'password'}
-          onChange={ () => setError("") }
-          inputRef={ refContrasena }
+          onChange={() => setError("")}
+          inputRef={refContrasena}
           required
           InputProps={{
             endAdornment: (
               <InputAdornment position="end">
                 <IconButton onClick={handleShowPassword} edge="end">
-                  { showPassword ? <VisibilityIcon /> : <VisibilityOffIcon />}
+                  {showPassword ? <VisibilityIcon /> : <VisibilityOffIcon />}
                 </IconButton>
               </InputAdornment>
             )
@@ -187,15 +190,15 @@ export default function RegistrarProfesorDialog({ onClose, onSave, open }) {
           fullWidth
           label="Confirmar Contraseña"
           margin="dense"
-          onChange={ () => setError("") }
-          inputRef={ refConfContrasena }
+          onChange={() => setError("")}
+          inputRef={refConfContrasena}
           required
           type={showPassword ? 'text' : 'password'}
           InputProps={{
             endAdornment: (
               <InputAdornment position="end">
                 <IconButton onClick={handleShowPassword} edge="end">
-                  { showPassword ? <VisibilityIcon /> : <VisibilityOffIcon />}
+                  {showPassword ? <VisibilityIcon /> : <VisibilityOffIcon />}
                 </IconButton>
               </InputAdornment>
             )
@@ -210,21 +213,21 @@ export default function RegistrarProfesorDialog({ onClose, onSave, open }) {
         />
 
       </DialogContent>
-        { error && (
-          <Box mb={2} width="100%">
-            <Alert severity="error">{ error }</Alert>
-          </Box>
-        ) }
+      {error && (
+        <Box mb={2} width="100%">
+          <Alert severity="error">{error}</Alert>
+        </Box>
+      )}
 
       <DialogActions>
 
-        <Button disabled={ loading } onClick={ handleCancel }>
+        <Button disabled={loading} onClick={handleCancel}>
           Cancelar
         </Button>
         <Button
           color="primary"
-          disabled={ loading }
-          onClick={ handleSave }
+          disabled={loading}
+          onClick={handleSave}
           variant="contained">
           Aceptar
         </Button>

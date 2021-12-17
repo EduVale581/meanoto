@@ -6,3 +6,4 @@ client = pymongo.MongoClient(CONNECTION_STRING)
 db = client.meanoto
 modulos = pymongo.collection.Collection(db, 'modulos')
 profesores = pymongo.collection.Collection(db, 'profesores')
+eventos = pymongo.collection.Collection(db, 'eventos')

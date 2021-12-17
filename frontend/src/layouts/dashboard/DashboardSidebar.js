@@ -13,6 +13,8 @@ import { MHidden } from '../../components/@material-extend';
 import sidebarConfig from './SidebarConfig';
 import account from '../../_mocks_/account';
 
+import { useUsuario } from "../../context/usuarioContext"
+
 // ----------------------------------------------------------------------
 
 const DRAWER_WIDTH = 280;
@@ -41,6 +43,7 @@ DashboardSidebar.propTypes = {
 
 export default function DashboardSidebar({ isOpenSidebar, onCloseSidebar }) {
   const { pathname } = useLocation();
+  const { user } = useUsuario();
 
   useEffect(() => {
     if (isOpenSidebar) {
@@ -56,7 +59,7 @@ export default function DashboardSidebar({ isOpenSidebar, onCloseSidebar }) {
       }}
     >
       <Box sx={{ px: 2.5, py: 3 }}>
-        <Box component={RouterLink} to="/" sx={{ display: 'inline-flex' }}>
+        <Box sx={{ display: 'inline-flex' }}>
           <Logo />
         </Box>
       </Box>
@@ -66,11 +69,8 @@ export default function DashboardSidebar({ isOpenSidebar, onCloseSidebar }) {
           <AccountStyle>
             <Avatar src={account.photoURL} alt="photoURL" />
             <Box sx={{ ml: 2 }}>
-              <Typography variant="subtitle2" sx={{ color: 'text.primary' }}>
-                {account.displayName}
-              </Typography>
-              <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                {account.role}
+              <Typography variant="subtitle1" noWrap>
+                {user && user.tipo_usuario}
               </Typography>
             </Box>
           </AccountStyle>

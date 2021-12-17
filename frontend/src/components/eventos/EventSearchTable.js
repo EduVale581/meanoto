@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useCallback} from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Box from '@mui/material/Box';
 import Table from '@mui/material/Table';
+import Button from '@mui/material/Button';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
@@ -11,24 +12,29 @@ import TableSortLabel from '@mui/material/TableSortLabel';
 import Paper from '@mui/material/Paper';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
+import Grid from '@mui/material/Grid';
 import EventSeatIcon from '@mui/icons-material/EventSeat';
 import AddLocationIcon from '@mui/icons-material/AddLocation';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { esES } from '@mui/material/locale';
 import { visuallyHidden } from '@mui/utils';
-import axios from 'axios';
+
+import { useUsuario } from '../../context/usuarioContext';
 
 import SearchBar from '../SearchBar';
 import RoomAssignmentDialog from './RoomAssignmentDialog';
+import EstudiantesAsistencia from './EstudiantesAsistencia';
+import { modificarAsistentes, eliminarAsistente } from '../../api/Api';
 
-function createData(id, nombre, modulo, profesor, sala, fecha) {
-  return {
-    id,
-    nombre,
-    modulo,
-    profesor,
-    sala,
-    fecha,
-  };
-}
+const theme = createTheme(
+  {
+    palette: {
+      primary: { main: '#1976d2' },
+    },
+  },
+  esES,
+);
 
 function descendingComparator(a, b, orderBy) {
   if (b[orderBy] < a[orderBy]) {
@@ -67,18 +73,18 @@ const headCells = [
     disablePadding: true,
     label: 'Nombre',
   },
-  {
-    id: 'modulo',
-    numeric: true,
-    disablePadding: false,
-    label: 'Módulo',
-  },
-  {
-    id: 'profesor',
-    numeric: true,
-    disablePadding: false,
-    label: 'Profesor',
-  },
+  // {
+  //   id: 'modulo',
+  //   numeric: true,
+  //   disablePadding: false,
+  //   label: 'Módulo',
+  // },
+  // {
+  //   id: 'profesor',
+  //   numeric: true,
+  //   disablePadding: false,
+  //   label: 'Profesor',
+  // },
   {
     id: 'sala',
     numeric: true,
@@ -95,12 +101,10 @@ const headCells = [
     id: 'button',
     label: ''
   }
-
 ];
 
 function EnhancedTableHead(props) {
-  const { order, orderBy, onRequestSort } =
-    props;
+  const { order, orderBy, onRequestSort } = props;
   const createSortHandler = (property) => (event) => {
     onRequestSort(event, property);
   };
@@ -134,44 +138,36 @@ function EnhancedTableHead(props) {
   );
 }
 
-export default function EnhancedTable() {
+export default function EventSearchTable({ events }) {
+
+  const isMounted = useRef(true);
   const [order, setOrder] = useState('asc');
   const [orderBy, setOrderBy] = useState('calories');
   const [selectedId, setSelectedId] = useState();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
-  const [events, setEvents] = useState([]);
-  const [rows, setRows] = useState([
-    createData('22654', 'Laboratorio 1', 'Cálculo 1', 'Juan López', 'S1', '2020-08-22'),
-    createData('35485', 'Clase 1', 'Cálculo 2', 'John López', 'A22', '2020-10-22'),
-    createData('55564', 'Laboratorio 11', 'Cálculo 3', 'Eduardo Salcedo', '', '2020-08-12'),
-  ]);
+  // const [events, setEvents] = useState([]);
+  const [rows, setRows] = useState([]);
   const [selectedRow, setSelectedRow] = useState();
-  const [showRoomAssignmentDialog, setShowRoomAssignmentDialog] = useState(false);
+  const [showRoomAssignmentDialog, setShowRoomAssignmentDialog] = useState(
+    false
+  );
 
-  useEffect( () => {
-    setEvents([
-      {
-        _id: 123,
-        bloque: 5,
-        fecha: Date.now(),
-        fecha_creacion: Date.now(),
-        modulo: "615cd601c9c677bba738f800",
-        nombre: "Clase 1 práctica",
-        profesor: "615cd5a9c9c677bba738f7ff",
-        codigo: "TECWEB2020",
-        estado: "disponible",
-        fecha_fin_recurrencia: "2020-08-15T04:00:00.000Z",
-        fecha_inicio_recurrencia: "2020-07-11T04:00:00.000Z",
-        maximo_asistentes: 22,
-        recurrencia: "semanal",
-        sala: "615cd775c9c677bba738f805",
-        asistentes: [
-          { "presente": false, "asistente": "615ce862c9c677bba738f82d" }
-        ]
-      }
-    ])
+  const [mostrarEstudianteAsistencia, setMostrarEstudiateAsistencia] = useState(
+    false
+  );
+
+  const { user } = useUsuario();
+
+  useEffect(() => {
+    return () => {
+      isMounted.current = false;
+    };
   }, []);
+
+  useEffect(() => {
+    setRows(events);
+  }, [events])
 
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === 'asc';
@@ -179,11 +175,10 @@ export default function EnhancedTable() {
     setOrderBy(property);
   };
 
-  const handleClick = (event, row) => {
-    console.log("la row", row);
-    setSelectedId(row.id);
-    setSelectedRow(row);
-  };
+  // const handleClick = (event, row) => {
+  //   setSelectedId(row.id);
+  //   setSelectedRow(row);
+  // };
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -202,12 +197,80 @@ export default function EnhancedTable() {
 
   const handleAddLocation = (row) => {
     setShowRoomAssignmentDialog(true);
+  };
+
+  const handleEstudianteAsistencia = (row) => {
+    setMostrarEstudiateAsistencia(true);
+  };
+
+  // function createData(id, nombre, modulo, profesor, sala, fecha) {
+  //   return {
+  //     id,
+  //     nombre,
+  //     modulo,
+  //     profesor,
+  //     sala,
+  //     fecha,
+  //   };
+  // }
+
+  const handleSearch = (value) => {
+    const cleanValue = removeAccents(value.toLowerCase());
+    const filtered = events.filter(
+      e => (
+        removeAccents(e.id.toLowerCase()).indexOf(cleanValue) !== -1 ||
+        removeAccents(e.nombre.toLowerCase()).indexOf(cleanValue) !== -1 ||
+        removeAccents(e.fecha.toLowerCase()).indexOf(cleanValue) !== -1 ||
+        removeAccents(e.profesor.toLowerCase()).indexOf(cleanValue) !== -1 ||
+        removeAccents(e.modulo.toLowerCase()).indexOf(cleanValue) !== -1 ||
+        removeAccents(e.sala.toLowerCase()).indexOf(cleanValue) !== -1
+      )
+    );
+    setRows(filtered);
+  };
+
+  const isReserved = (row) => {
+    return row.asistentes.some( a => a === user.refId );
+  };
+
+  const handleReservation = (ev) => {
+    if( ! isReserved(ev) ) return reserve(ev);
+    return cancelReservation(ev);
+  }
+
+  const cancelReservation = async (ev) => {
+    const filtered = ev.asistentes.filter( a => a !== user.refId);
+    ev.asistentes = filtered;
+    const index = rows.findIndex( r => r.id === ev.id );
+    rows.splice(index, 1, ev);
+    setRows([...rows]);
+    const res = await eliminarAsistente(ev.id, user.refId)
+    console.log("res", res)
+  }
+
+  const reserve = async(ev) => {
+    ev.asistentes.push(user.refId)
+    const index = rows.findIndex( r => r.id === ev.id );
+    rows.splice(index, 1, ev);
+    setRows([...rows]);
+    const res = await modificarAsistentes(ev.id, user.refId);
+    console.log("res", res)
+
+  }
+
+
+  function removeAccents(str) {
+    return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   }
 
   return (
     <Box sx={{ width: '100%' }}>
 
-      <SearchBar />
+      <SearchBar
+        placeholder='Busca un evento'
+        onSearch={(e) => handleSearch(e.target.value)}
+      />
+
       <Paper sx={{ width: '100%', mb: 2 }}>
         <TableContainer>
           <Table
@@ -217,7 +280,6 @@ export default function EnhancedTable() {
           >
 
             <EnhancedTableHead
-              // numSelected={selected.length}
               order={order}
               orderBy={orderBy}
               onRequestSort={handleRequestSort}
@@ -225,23 +287,16 @@ export default function EnhancedTable() {
             />
 
             <TableBody>
-              {/* if you don't need to support IE11, you can replace the `stableSort` call with:
-                 rows.slice().sort(getComparator(order, orderBy)) */}
               {stableSort(rows, getComparator(order, orderBy))
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map((row, index) => {
-                  const isItemSelected = isSelected(row.name);
                   const labelId = `enhanced-table-checkbox-${index}`;
 
                   return (
                     <TableRow
                       hover
-                      onClick={(event) => handleClick(event, row)}
-                      role="checkbox"
-                      aria-checked={isItemSelected}
                       tabIndex={-1}
                       key={index}
-                      // selected={isItemSelected}
                     >
                       <TableCell
                         component="th"
@@ -251,23 +306,59 @@ export default function EnhancedTable() {
                       >
                         {row.nombre}
                       </TableCell>
-                      <TableCell align="right">{row.modulo}</TableCell>
-                      <TableCell align="right">{row.profesor}</TableCell>
                       <TableCell align="right">
-                        {row.sala || (
-                          <IconButton onClick={ () => handleAddLocation(row) }>
-                            <AddLocationIcon/>
-                          </IconButton>
-                        )}
+                        {(user.tipo_usuario === 'ADMIN' || user.tipo_usuario === 'OPERATIVO') ? (
+                          <Grid continer>
+                            <Grid item xs={2} md={2}>
+                              <IconButton onClick={() => handleAddLocation(row)}>
+                                <AddLocationIcon />
+                              </IconButton>
+                            </Grid>
+                            <Grid item xs={10} md={10}>
+                              {row.sala}
+                            </Grid>
+
+                          </Grid>
+
+                        ) : (
+                          row.sala
+                        )
+                        }
+
                       </TableCell>
                       <TableCell align="right">{row.fecha}</TableCell>
                       <TableCell align="right">
+                        {user.tipo_usuario === 'ESTUDIANTE' ? (
+                          <Tooltip title="Reservar">
+                            <span>
+                              <IconButton
+                                disabled={row.sala ? false : true}
+                                onClick={ () => handleReservation(row)}
+                              >
+                                <EventSeatIcon
+                                  color={isReserved(row) ? "success" : ""}
+                                />
+                              </IconButton>
+                            </span>
+                          </Tooltip>
+                        ) : (
+                          <div></div>
+                        )}
 
-                        <Tooltip title="Reservar">
-                          <IconButton>
-                            <EventSeatIcon/>
-                          </IconButton>
-                        </Tooltip>
+                        {user.tipo_usuario === 'ESTUDIANTE' ? (
+                          <div></div>
+
+                        ) : (
+
+                          <Tooltip title="Visualizar">
+                            <IconButton onClick={() => handleEstudianteAsistencia(row)}>
+                              <VisibilityIcon />
+                            </IconButton>
+                          </Tooltip>
+
+                        )}
+
+
                       </TableCell>
                     </TableRow>
                   );
@@ -280,24 +371,35 @@ export default function EnhancedTable() {
             </TableBody>
           </Table>
         </TableContainer>
-        <TablePagination
-          rowsPerPageOptions={[5, 10, 25]}
-          component="div"
-          count={rows.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-        />
+
+        <ThemeProvider theme={theme}>
+          <TablePagination
+            rowsPerPageOptions={[5, 10, 25]}
+            component="div"
+            count={rows.length}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+          />
+        </ThemeProvider>
       </Paper>
 
-      { showRoomAssignmentDialog && (
+      {showRoomAssignmentDialog && (
         <RoomAssignmentDialog
           open={showRoomAssignmentDialog}
-          handleClose={ () => setShowRoomAssignmentDialog(false) }
+          handleClose={() => setShowRoomAssignmentDialog(false)}
           event={events[0]}
         />
-      ) }
+      )}
+
+      {mostrarEstudianteAsistencia && (
+        <EstudiantesAsistencia
+          open={mostrarEstudianteAsistencia}
+          handleClose={() => setMostrarEstudiateAsistencia(false)}
+          event={events[0]}
+        />
+      )}
 
     </Box>
   );

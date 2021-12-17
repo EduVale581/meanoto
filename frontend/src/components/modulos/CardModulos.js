@@ -23,6 +23,8 @@ import {
     InputLabel,
     Select,
     MenuItem,
+    Autocomplete,
+    Alert
 } from '@mui/material';
 import LoadingButton from '@mui/lab/LoadingButton';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -38,14 +40,25 @@ export default function CardModulos({ modulo, setModulosArreglo, setModulosMostr
     const { nombre, profesor, facultad, carrera, nro_alumnos, id, id_Profesor } = modulo;
     const [openCrearModulo, setOpenCrearModulo] = useState(false);
     const [openEditarCantidadAlumnos, setOpenEditarCantidadAlumnos] = useState(false);
+    const [openAgregarEstudiante, setAgregarEstudiante] = useState(false);
     const [loadingEliminar, setLoadingEliminar] = useState(false);
 
+    const [estudiantesTotal, setEstudiantesTotal] = useState([]);
+
     const [loadingEditar, setLoadingEditar] = useState(false);
+    const [loadingAgregarEstudiante, setLoadingAgregarEstudiante] = useState(false);
+    const [errorAgregarEstudiante, setErrorAgregarEstudiante] = useState(false);
 
     const [cantEstudiantes, setCantEstudiantes] = useState(nro_alumnos);
 
     const [profesores, setProfesores] = useState([]);
     const [profesorSeleccionado, setProfesorSeleccionado] = useState(id_Profesor);
+
+    const optionsArreglo = ['Option 1', 'Option 2'];
+
+    const [valueAutoComplete, setValueAutoComplete] = useState(null);
+
+
 
 
 
@@ -54,10 +67,54 @@ export default function CardModulos({ modulo, setModulosArreglo, setModulosMostr
     const handleOpenModulo = () => setOpenCrearModulo(true);
     const handleCloseModulo = () => setOpenCrearModulo(false);
 
+    const handleOpenAgregarEstudiante = () => setAgregarEstudiante(true);
+    const handleCloseAgregarEstudiante = () => {
+        setValueAutoComplete(null)
+        setAgregarEstudiante(false)
+    };
+
     const handleOpenEditarEstudiantes = () => setOpenEditarCantidadAlumnos(true);
     const handleCloseEditarEstudiantes = () => {
         setCantEstudiantes(0)
         setOpenEditarCantidadAlumnos(false)
+    };
+
+
+    const agregarEstudiante = () => {
+        setLoadingAgregarEstudiante(true)
+        if (valueAutoComplete && valueAutoComplete.id) {
+            let datos = {
+                idEstudiante: valueAutoComplete.id,
+                idModulo: id
+            }
+
+            Api.agregarModuloEstudiante(datos).then((data) => {
+                if (data === 403 || data === 401) {
+                    window.localStorage.removeItem("token");
+                    window.localStorage.removeItem("user");
+                    window.location.href = "/login"
+                }
+                else if (data === -1 || data === 300) {
+                    setErrorAgregarEstudiante("Error en el servidor.")
+                    setLoadingAgregarEstudiante(false)
+                }
+                else {
+                    setLoadingAgregarEstudiante(false)
+                    window.location.reload();
+
+
+                }
+
+            }).catch(() => {
+                setLoadingAgregarEstudiante(false)
+
+            })
+        }
+        else {
+            setErrorAgregarEstudiante("Error en agregar estudiante.")
+            setLoadingAgregarEstudiante(false)
+
+        }
     };
 
     const guardarCantidadEstudiantes = async () => {
@@ -67,7 +124,7 @@ export default function CardModulos({ modulo, setModulosArreglo, setModulosMostr
             window.localStorage.removeItem("user");
             window.location.href = "/login"
         }
-        else if (dato === -1) {
+        else if (dato === -1 || dato === 300) {
 
         }
         else {
@@ -102,7 +159,7 @@ export default function CardModulos({ modulo, setModulosArreglo, setModulosMostr
             window.localStorage.removeItem("user");
             window.location.href = "/login"
         }
-        else if (data === -1) {
+        else if (data === -1 || data === 300) {
 
         }
         else {
@@ -119,42 +176,27 @@ export default function CardModulos({ modulo, setModulosArreglo, setModulosMostr
 
     }, []);
 
-
-    async function obtenerUsuarioNull() {
-        if (!user) {
-            const token = window.localStorage.getItem("token");
-            const idUsuario = window.localStorage.getItem("user");
-            const data = await Api.cargarUsuario(token, idUsuario);
-
-
-            if (data === 401) {
+    useEffect(() => {
+        Api.getEstudiantesModulos().then((data) => {
+            if (data === 403 || data === 401) {
                 window.localStorage.removeItem("token");
                 window.localStorage.removeItem("user");
                 window.location.href = "/login"
             }
-            else if (data === 403) {
-                window.localStorage.removeItem("token");
-                window.localStorage.removeItem("user");
-                window.location.href = "/login"
-
-            }
-            else if (data === -1) {
-                window.localStorage.removeItem("token");
-                window.localStorage.removeItem("user");
-                window.location.href = "/login"
+            else if (data === -1 || data === 300) {
 
             }
             else {
-                setUser(data);
-                setCargandoUsuario(false);
+                setEstudiantesTotal(data)
+
             }
 
-        }
+        }).catch(() => {
 
+        })
 
-    }
+    }, []);
 
-    obtenerUsuarioNull()
     return (
         <Card>
 
@@ -243,6 +285,49 @@ export default function CardModulos({ modulo, setModulosArreglo, setModulosMostr
                 </CardContent>
             </CardActionArea>
 
+
+            <Dialog
+                open={openAgregarEstudiante}
+                fullWidth
+                maxWidth="xs"
+            >
+                <DialogTitle>
+                    <Typography variant="h5" noWrap style={{ paddingLeft: 10 }}>
+                        Agregar Estudiante
+                    </Typography>
+
+
+                </DialogTitle>
+                <DialogContent>
+                    <Autocomplete
+                        style={{ marginTop: "10px" }}
+                        value={valueAutoComplete}
+                        onChange={(event, newValue) => {
+                            console.log(newValue)
+                            setValueAutoComplete(newValue);
+                        }}
+                        getOptionLabel={(option) => option.nombre + " " + option.apellido}
+                        id="controllable-states-demo"
+                        options={estudiantesTotal}
+                        fullWidth
+                        renderInput={(params) => <TextField {...params} label="Estudiante" />}
+                    />
+                </DialogContent>
+                {errorAgregarEstudiante && <Alert severity="error">{errorAgregarEstudiante}</Alert>}
+                <DialogActions>
+                    <Button onClick={handleCloseAgregarEstudiante} color="secondary">Cerrar</Button>
+                    <LoadingButton
+                        onClick={agregarEstudiante}
+                        color="primary"
+                        loading={loadingAgregarEstudiante}
+                    >
+                        Agregar
+
+                    </LoadingButton>
+
+
+                </DialogActions>
+            </Dialog>
             <Dialog
                 open={openCrearModulo}
                 aria-labelledby="alert-dialog-title"
@@ -256,7 +341,7 @@ export default function CardModulos({ modulo, setModulosArreglo, setModulosMostr
                             Estudiantes
                         </Typography>
                         {!cargandoUsuario && user && user.tipo_usuario === "ADMIN" && (
-                            <ListItem autoFocus button>
+                            <ListItem autoFocus button onClick={handleOpenAgregarEstudiante}>
                                 <ListItemAvatar>
                                     <Avatar>
                                         <AddIcon />
@@ -285,7 +370,31 @@ export default function CardModulos({ modulo, setModulosArreglo, setModulosMostr
                                         <ListItemText primary={estud.nombre + " " + estud.apellidos} />
                                         {!cargandoUsuario && user && user.tipo_usuario === "ADMIN" && (
                                             <IconButton
-                                                onClick={() => { console.log(estud.id) }}
+                                                onClick={() => {
+                                                    let datos = {
+                                                        idModulo: id,
+                                                        idEstudiante: estud.id
+                                                    }
+                                                    Api.eliminarModuloEstudiante(datos).then((data) => {
+                                                        console.log(data)
+                                                        if (data === 403 || data === 401) {
+                                                            window.localStorage.removeItem("token");
+                                                            window.localStorage.removeItem("user");
+                                                            window.location.href = "/login"
+                                                        }
+                                                        else if (data === -1 || data === 300) {
+
+                                                        }
+                                                        else {
+                                                            window.location.reload();
+
+                                                        }
+
+                                                    }).catch(() => {
+
+                                                    })
+
+                                                }}
                                                 aria-label="delete"
                                                 size="large"
                                                 color="error"

@@ -18,7 +18,8 @@ import {
   DialogContentText,
   DialogActions,
   TextField,
-  LinearProgress
+  LinearProgress,
+  Alert
 } from '@mui/material';
 import LoadingButton from '@mui/lab/LoadingButton';
 import { styled } from '@mui/material/styles';
@@ -28,17 +29,15 @@ import CardModulos from '../components/modulos/CardModulos';
 import React, { useState, useEffect } from 'react';
 import { useUsuario } from '../context/usuarioContext';
 import Api from '../api/Api';
+import * as XLSX from 'xlsx';
+import ExportJsonExcel from 'js-export-excel'
 
 const Input = styled('input')({
   display: 'none',
 });
 
 export default function Modulos() {
-  const { user, setUser, setCargandoUsuario, cargandoUsuario } = useUsuario();
-
-
-
-
+  const { user } = useUsuario();
   const [openCrearModulo, setOpenCrearModulo] = useState(false);
   const [carreraSeleccionadaFiltro, setCarreraSeleccionadaFiltro] = useState("Sin filtro");
   const [facultadSeleccionadaFiltro, setFacultadSeleccionadaFiltro] = useState("Sin filtro");
@@ -54,65 +53,147 @@ export default function Modulos() {
   const [nombre, setNombre] = useState("");
   const [nro_alumnos, setNroAlumnos] = useState("");
 
+  const [error, setError] = useState(false);
+
 
 
   const [modulosArreglo, setModulosArreglo] = useState(null);
 
-  const facultadesArreglo = [
-    { nombre: "Economía y Negocios" },
-    { nombre: "Ciencias Jurídicas y Sociales" },
-    { nombre: "Ingeniería" },
-    { nombre: "Ciencias de la Salud" },
-    { nombre: "Ciencias Agrarias" },
-    { nombre: "Psicología" },
-    { nombre: "Arquitectura, Música y Diseño" },
-    { nombre: "Ciencias de la Educación" },
-    { nombre: "Rectoría" }
-  ]
-  const carrerasArreglo = [
-    { nombre: "Auditoría e Ingeniería en Control de Gestión de Talca", facultad: "Economía y Negocios" },
-    { nombre: "Auditoría e Ingeniería en Control de Gestión de Santiago", facultad: "Economía y Negocios" },
-    { nombre: "Ingeniería Comercial de Talca", facultad: "Economía y Negocios" },
-    { nombre: "Ingeniería Informática Empresarial", facultad: "Economía y Negocios" },
-    { nombre: "Contador Público y Auditor Linares", facultad: "Economía y Negocios" },
-    { nombre: "Derecho de Talca", facultad: "Ciencias Jurídicas y Sociales" },
-    { nombre: "Derecho de Santiago", facultad: "Ciencias Jurídicas y Sociales" },
-    { nombre: "Ciencia Política y Administración Pública de Santiago", facultad: "Ciencias Jurídicas y Sociales" },
-    { nombre: "Ciencia Política y Administración Pública de Talca", facultad: "Ciencias Jurídicas y Sociales" },
-    { nombre: "Ingeniería Civil en Mecatrónica", facultad: "Ingeniería" },
-    { nombre: "Ingeniería Civil en Computación", facultad: "Ingeniería" },
-    { nombre: "Ingeniería Civil Industrial", facultad: "Ingeniería" },
-    { nombre: "Ingeniería en Obras Civiles", facultad: "Ingeniería" },
-    { nombre: "Ingeniería Civil en Bioinformática", facultad: "Ingeniería" },
-    { nombre: "Ingeniería Civil Mecánica", facultad: "Ingeniería" },
-    { nombre: "Ingeniería Civil de Minas", facultad: "Ingeniería" },
-    { nombre: "Ingeniería Civil Eléctrica", facultad: "Ingeniería" },
-    { nombre: "Ingeniería en Desarrollo de Videojuegos y Realidad Virtual", facultad: "Ingeniería" },
-    { nombre: "Odontología", facultad: "Ciencias de la Salud" },
-    { nombre: "Tecnología Médica", facultad: "Ciencias de la Salud" },
-    { nombre: "Kinesiología", facultad: "Ciencias de la Salud" },
-    { nombre: "Fonoaudiología", facultad: "Ciencias de la Salud" },
-    { nombre: "Enfermería", facultad: "Ciencias de la Salud" },
-    { nombre: "Nutrición y Dietética", facultad: "Ciencias de la Salud" },
-    { nombre: "Obstetricia y Puericultura", facultad: "Ciencias de la Salud" },
-    { nombre: "Agronomía", facultad: "Ciencias Agrarias" },
-    { nombre: "Psicología", facultad: "Psicología" },
-    { nombre: "Arquitectura", facultad: "Arquitectura, Música y Diseño" },
-    { nombre: "Música", facultad: "Arquitectura, Música y Diseño" },
-    { nombre: "Diseño", facultad: "Arquitectura, Música y Diseño" },
-    { nombre: "Pedagogías en Ciencias Naturales y Exactas", facultad: "Ciencias de la Educación" },
-    { nombre: "Pedagogías en Inglés", facultad: "Ciencias de la Educación" },
-    { nombre: "Pedagogías en Alemán", facultad: "Ciencias de la Educación" },
-    { nombre: "Medicina", facultad: "Rectoría" },
-    { nombre: "Ciencias Forestales", facultad: "Rectoría" },
-    { nombre: "Bioquímica", facultad: "Rectoría" }
-  ]
+  const [facultadesArreglo, setFacultadesArreglo] = useState([])
+
+  const exportToCSV = () => {
+    let option = {};
+    let fecha = new Date();
+    let nombreFecha = (fecha.getMonth() + 1) + "_" + fecha.getFullYear()
+
+    option.fileName = 'modulos_' + nombreFecha; // nombre de archivo
+    option.datas = [
+      {
+        sheetData: [], // datos
+        sheetName: 'Módulos', // nombre de la hoja
+        sheetHeader: ['Nombre', 'Número Alumnos'], // encabezado de la primera fila
+        //columnWidths: [20, 20] // el ancho de la columna debe corresponder al orden de la columna
+      },
+    ];
+    const toExcel = new ExportJsonExcel(option); //new
+    toExcel.saveExcel(); // Guardar
+  }
+
+  const leerArchivo = (file) => {
+    if (facultadSeleccionadaFiltro === "Sin filtro" || carreraSeleccionadaFiltro === "Sin filtro") {
+      setError("Se debe seleccionar una facultad y carrera en el filtro.");
+
+    }
+    else {
+
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        /* Parse data */
+        const bstr = evt.target.result;
+        const wb = XLSX.read(bstr, { type: 'binary' });
+        /* Get first worksheet */
+        const wsname = wb.SheetNames[0];
+        const ws = wb.Sheets[wsname];
+        /* Convert array of arrays */
+        const data = XLSX.utils.sheet_to_csv(ws, { header: 1 });
+        /* Update state */
+        let obtencion = data.split('\n');
+        let elementosNoGuardados = 0;
+        obtencion.forEach((element, idx) => {
+          if (element === "" || element === " " || idx === 0) {
+
+
+          }
+          else {
+            if (element.includes(",") && element.split(',').length === 2) {
+              let datos = element.split(',');
+              let numAlumnos = 0;
+              try {
+                numAlumnos = Number.parseInt(datos[1])
+              }
+              catch {
+                numAlumnos = 0;
+
+              }
+
+              Api.crearNuevoModulo2(datos[0], facultadSeleccionadaFiltro, numAlumnos, carreraSeleccionadaFiltro).then((data) => {
+                if (data === 403 || data === 401) {
+                  elementosNoGuardados = elementosNoGuardados + 1;
+                }
+                else if (data === -1 || data === 300) {
+                  elementosNoGuardados = elementosNoGuardados + 1;
+
+                }
+                else {
+                  Api.getModulos2().then((data2) => {
+                    if (data2 === 403 || data2 === 401) {
+                    }
+                    else if (data2 === -1 || data2 === 300) {
+
+                    }
+                    else {
+                      setModulosArreglo(data2)
+                      setModulosMostrar(data2)
+                      setModulosServidor(false)
+
+                    }
+
+
+                  }).catch(() => {
+
+                  })
+
+                }
+              }).catch(() => {
+                elementosNoGuardados = elementosNoGuardados + 1;
+              })
+            }
+            else {
+              elementosNoGuardados = elementosNoGuardados + 1;
+            }
+
+
+          }
+
+        });
+        if (elementosNoGuardados > 0) {
+          setError("No se guardaron " + elementosNoGuardados + " elementos")
+        }
+      };
+      reader.readAsBinaryString(file);
+
+
+    }
+
+  }
+
+  const handleChangeNombreArchivo = (event) => {
+    if (event.target.files[0] && event.target.files[0].type === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") {
+      leerArchivo(event.target.files[0])
+    }
+    else {
+      setError("Error en el archivo")
+    }
+
+  };
+
+  const exportarExcel = () => {
+    exportToCSV()
+  };
 
 
 
   const handleChangeFacultadSeleccionadaModal = (event) => {
     setFacultadSeleccionadaModal(event.target.value);
-    setCarrerasFiltradas(carrerasArreglo.filter((e) => e.facultad === event.target.value))
+    let filtroCarreras = facultadesArreglo.filter((e) => e.nombre === event.target.value)[0];
+    if (filtroCarreras && filtroCarreras.carreras) {
+      setCarrerasFiltradas(filtroCarreras.carreras)
+
+    }
+    else {
+      setCarrerasFiltradas([])
+
+    }
   };
 
   const handleChangeCarreraSeleccionadaModal = (event) => {
@@ -121,7 +202,16 @@ export default function Modulos() {
 
   const handleChangeFacultadSeleccionadaFiltro = (event) => {
     setFacultadSeleccionadaFiltro(event.target.value);
-    setCarrerasFiltradas(carrerasArreglo.filter((e) => e.facultad === event.target.value))
+    let filtroCarreras = facultadesArreglo.filter((e) => e.nombre === event.target.value)[0];
+    if (filtroCarreras && filtroCarreras.carreras) {
+      setCarrerasFiltradas(filtroCarreras.carreras)
+
+    }
+    else {
+      setCarrerasFiltradas([])
+
+    }
+
 
     if (event.target.value === "Sin filtro") {
       setModulosMostrar(modulosArreglo)
@@ -166,58 +256,22 @@ export default function Modulos() {
   const handleOpenModulo = () => setOpenCrearModulo(true);
   const handleCloseModulo = () => setOpenCrearModulo(false);
 
-  const crearNuevoModulo = () => {
-    const data = Api.crearNuevoModulo(nombre, facultadSeleccionadaModal, nro_alumnos, carreraSeleccionadaModal, setModulosArreglo, setModulosMostrar, setModulosServidor, facultadSeleccionadaFiltro, carreraSeleccionadaFiltro, setLoadingCrearModulo, setOpenCrearModulo)
+  const crearNuevoModulo = async () => {
+    const data = await Api.crearNuevoModulo(nombre, facultadSeleccionadaModal, nro_alumnos, carreraSeleccionadaModal, setModulosArreglo, setModulosMostrar, setModulosServidor, facultadSeleccionadaFiltro, carreraSeleccionadaFiltro, setLoadingCrearModulo, setOpenCrearModulo)
     if (data === 403 || data === 401) {
       window.localStorage.removeItem("token");
       window.localStorage.removeItem("user");
       window.location.href = "/login"
     }
-    else if (data === -1) {
+    else if (data === -1 || data === 300) {
 
     }
     else {
 
     }
-  }
-
-
-
-  async function obtenerUsuarioNull() {
-    if (!user) {
-      const token = window.localStorage.getItem("token");
-      const idUsuario = window.localStorage.getItem("user");
-      const data = await Api.cargarUsuario(token, idUsuario);
-
-
-      if (data === 401) {
-        window.localStorage.removeItem("token");
-        window.localStorage.removeItem("user");
-        window.location.href = "/login"
-      }
-      else if (data === 403) {
-        window.localStorage.removeItem("token");
-        window.localStorage.removeItem("user");
-        window.location.href = "/login"
-
-      }
-      else if (data === -1) {
-        window.localStorage.removeItem("token");
-        window.localStorage.removeItem("user");
-        window.location.href = "/login"
-
-      }
-      else {
-        setUser(data);
-        setCargandoUsuario(false);
-      }
-
-    }
 
 
   }
-
-  obtenerUsuarioNull()
 
 
 
@@ -239,7 +293,7 @@ export default function Modulos() {
         window.location.href = "/login"
 
       }
-      else if (data === -1) {
+      else if (data === -1 || data === 300) {
 
       }
       else {
@@ -248,6 +302,33 @@ export default function Modulos() {
 
     }
     cargarModulos();
+
+  }, []);
+
+  useEffect(() => {
+    async function obtenerFacultades() {
+      const data = await Api.getFacultades();
+      if (data === 401) {
+        window.localStorage.removeItem("token");
+        window.localStorage.removeItem("user");
+        window.location.href = "/login"
+      }
+      else if (data === 403) {
+        window.localStorage.removeItem("token");
+        window.localStorage.removeItem("user");
+        window.location.href = "/login"
+
+      }
+      else if (data === -1 || data === 300) {
+
+      }
+      else {
+        setFacultadesArreglo(data)
+      }
+
+
+    }
+    obtenerFacultades();
 
   }, []);
 
@@ -263,7 +344,7 @@ export default function Modulos() {
           <Typography variant="h4" gutterBottom>
             Módulos
           </Typography>
-          {!cargandoUsuario && user && user.tipo_usuario === "ADMIN" && (
+          {user && user.tipo_usuario === "ADMIN" && (
             <Button
               variant="contained"
               onClick={handleOpenModulo}
@@ -276,21 +357,39 @@ export default function Modulos() {
 
         </Stack>
 
-        {!cargandoUsuario && user && user.tipo_usuario === "ADMIN" && (
+        {error && <Alert severity="error">{error}</Alert>}
+
+        {user && user.tipo_usuario === "ADMIN" && (
           <Grid container spacing={2} style={{ marginBottom: 10 }}>
             <Grid item xs={12} style={{ marginBottom: 10 }}>
               <Paper elevation={3} >
                 <Grid container spacing={2}>
                   <Grid item xs={6} md={6} style={{ marginBottom: 10 }}>
                     <label htmlFor="contained-button-file">
-                      <Input accept="image/*" id="contained-button-file" multiple type="file" />
-                      <Button variant="contained" component="span" fullWidth>
+                      <Input
+                        accept="*"
+                        id="contained-button-file"
+                        type="file"
+                        onChange={handleChangeNombreArchivo}
+                        disabled={(facultadSeleccionadaFiltro === "Sin filtro" || carreraSeleccionadaFiltro === "Sin filtro") ? true : false}
+
+                      />
+                      <Button
+                        variant="contained"
+                        component="span" fullWidth
+                        disabled={(facultadSeleccionadaFiltro === "Sin filtro" || carreraSeleccionadaFiltro === "Sin filtro") ? true : false}
+                      >
                         Subir módulos desde archivo
                       </Button>
                     </label>
                   </Grid>
                   <Grid item xs={6} md={6} style={{ marginBottom: 10 }}>
-                    <Button variant="contained" color="inherit" fullWidth>
+                    <Button
+                      variant="contained"
+                      color="inherit"
+                      fullWidth
+                      onClick={exportarExcel}
+                    >
                       Descargar plantilla
                     </Button>
                   </Grid>
@@ -305,7 +404,7 @@ export default function Modulos() {
           </Grid>
         )}
 
-        {!cargandoUsuario && user && user.tipo_usuario === "ADMIN" && (
+        {user && user.tipo_usuario === "ADMIN" && (
           <Grid container spacing={2} style={{ marginBottom: 10 }}>
             <Grid item xs={12}>
               <Paper elevation={3}>
@@ -413,7 +512,7 @@ export default function Modulos() {
         </DialogTitle>
         <DialogContent>
           <DialogContentText id="alert-dialog-description">
-            <Grid container xs={12} spacing={2}>
+            <Grid container spacing={2}>
               <Grid item xs={12} style={{ marginLeft: 10, marginTop: 10 }}>
                 <TextField
                   value={nombre}
