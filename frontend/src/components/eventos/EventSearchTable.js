@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Box from '@mui/material/Box';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -301,14 +301,17 @@ export default function EventSearchTable({ events }) {
                       </TableCell>
                       <TableCell align="right">{row.fecha}</TableCell>
                       <TableCell align="right">
-
-                        <Tooltip title="Reservar">
-                          <IconButton
-                            disabled={row.sala ? false : true}
-                          >
-                            <EventSeatIcon />
-                          </IconButton>
-                        </Tooltip>
+                        {user.tipo_usuario === 'ESTUDIANTE' ? (
+                          <Tooltip title="Reservar">
+                            <IconButton
+                              disabled={row.sala ? false : true}
+                            >
+                              <EventSeatIcon />
+                            </IconButton>
+                          </Tooltip>
+                        ) : (
+                          <div></div>
+                        )}
 
                         {user.tipo_usuario === 'ESTUDIANTE' ? (
                           <div></div>
