@@ -436,6 +436,42 @@ def agregarModuloEstudiante():
     except:
         return jsonify({'message': 'Error'}), 300
 
+@app.route('/modificarAsistentes', methods=['POST'])
+@jwt_required()
+def agregarAsistente():
+    print(request.json['idEvento'])
+    try:
+        db.db.eventos.update_one({'_id': ObjectId(request.json['idEvento'])}, {"$push": {
+            'asistentes': {"$each":[ObjectId(request.json['idAsistente'])]}
+        }})
+        return jsonify({'message': 'Datos actulizados'}), 200
+    except:
+        return jsonify({'message': 'Error'}), 300
+
+@app.route('/eliminarAsistente', methods=['POST'])
+@jwt_required()
+def eliminarAsistente():
+    print(request.json['idEvento'])
+    evento = db.db.eventos.find_one({ '_id': ObjectId(request.json['idEvento']) })
+    if evento is not None:
+        arr = []
+        for doc in evento['asistentes']:
+            if ObjectId(request.json['idAsistente']) == ObjectId(doc):
+                pass
+            else:
+                arr.append(ObjectId(doc))
+        try:
+            db.db.eventos.update_one({'_id': ObjectId(request.json['idEvento'])}, {"$set": {
+                'asistentes': arr
+            }})
+            return jsonify({'message': 'Datos actulizados'}), 200
+        except:
+            return jsonify({'message': 'Error'}), 300
+    else:
+        return jsonify({'message': 'Error'}), 300
+
+
+
 @app.route('/estudiantes/<id>', methods=['DELETE'])
 @jwt_required()
 def eliminarEstudiante(id):

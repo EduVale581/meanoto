@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Box from '@mui/material/Box';
 import Table from '@mui/material/Table';
+import Button from '@mui/material/Button';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
@@ -24,6 +25,7 @@ import { useUsuario } from '../../context/usuarioContext';
 import SearchBar from '../SearchBar';
 import RoomAssignmentDialog from './RoomAssignmentDialog';
 import EstudiantesAsistencia from './EstudiantesAsistencia';
+import { modificarAsistentes, eliminarAsistente } from '../../api/Api';
 
 const theme = createTheme(
   {
@@ -236,21 +238,24 @@ export default function EventSearchTable({ events }) {
     return cancelReservation(ev);
   }
 
-  const cancelReservation = (ev) => {
-    console.log("antes", ev.asistentes)
+  const cancelReservation = async (ev) => {
     const filtered = ev.asistentes.filter( a => a !== user.refId);
     ev.asistentes = filtered;
-    console.log("despues", ev.asistentes)
     const index = rows.findIndex( r => r.id === ev.id );
     rows.splice(index, 1, ev);
     setRows([...rows]);
+    const res = await eliminarAsistente(ev.id, user.refId)
+    console.log("res", res)
   }
 
-  const reserve = (ev) => {
+  const reserve = async(ev) => {
     ev.asistentes.push(user.refId)
     const index = rows.findIndex( r => r.id === ev.id );
     rows.splice(index, 1, ev);
     setRows([...rows]);
+    const res = await modificarAsistentes(ev.id, user.refId);
+    console.log("res", res)
+
   }
 
 
@@ -265,6 +270,7 @@ export default function EventSearchTable({ events }) {
         placeholder='Busca un evento'
         onSearch={(e) => handleSearch(e.target.value)}
       />
+
       <Paper sx={{ width: '100%', mb: 2 }}>
         <TableContainer>
           <Table
