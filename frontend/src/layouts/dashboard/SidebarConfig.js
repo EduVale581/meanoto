@@ -27,7 +27,7 @@ const sidebarConfig = [
     usuarios: ["ADMIN", "OPERATIVO"]
   },
   {
-    title: 'modulos',
+    title: 'módulos',
     path: '/dashboard/modulo',
     icon: <ClassIcon />,
     usuarios: ["ADMIN", "OPERATIVO", "PROFESOR", "ESTUDIANTE"]

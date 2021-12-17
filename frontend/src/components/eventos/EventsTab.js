@@ -29,8 +29,8 @@ export default function EventsTab() {
 
   const panels = [
     {
-      label: "Eventos Semana Actual",
-      component: <Schedule />,
+      label: "Mis eventos",
+      component: <Schedule events={ events }/>,
     },
     {
       label: "Búsqueda",

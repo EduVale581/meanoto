@@ -648,7 +648,7 @@ def crearEvento():
             'maximo_asistentes': request.json['maximo_asistentes'],
             'sala': request.json['sala'],
             'asistentes': [],
-            'tipoRecurencia': request.json['tipoRecurencia'],
+            'tipoRecurrencia': request.json['tipoRecurrencia'],
             'recurrencia': request.json['recurrencia'],
         })
         return jsonify({'message': 'Evento agregado con éxito'}), 200
@@ -687,7 +687,7 @@ def getEventos():
             'maximo_asistentes': doc['maximo_asistentes'],
             'sala': sala,
             'asistentes': doc['asistentes'],
-            'tipoRecurencia': doc['tipoRecurencia'],
+            'tipoRecurrencia': doc['tipoRecurrencia'],
             'recurrencia': doc['recurrencia'],
         })
     return jsonify(eventos), 200

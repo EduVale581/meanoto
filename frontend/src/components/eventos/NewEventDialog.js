@@ -228,7 +228,7 @@ export default function NewEventDialog({ onClose, onSave, open, professor }) {
         fecha_inicio_recurrencia: fechaInicioRecurrencia,
         maximo_asistentes: maximoAsistentes,
         sala: "",
-        tipoRecurencia: tipoRecurrencia.label,
+        tipoRecurrencia: tipoRecurrencia.label,
         recurrencia: recurenciaVariable,
       };
       const res = await Api.agregarEvento(evento);
@@ -403,7 +403,10 @@ export default function NewEventDialog({ onClose, onSave, open, professor }) {
               <InputLabel>Recurrencia</InputLabel>
               <Select
                 value={recurrencia.value}
-                disabled={tipoRecurrencia.value === "NO_RECURRENTE"}
+                disabled={
+                  tipoRecurrencia.value === "NO_RECURRENTE" ||
+                    tipoRecurrencia.value === "Diaria"
+                }
                 label="Recurrencia"
                 onChange={handleRecurrencia}
               >
