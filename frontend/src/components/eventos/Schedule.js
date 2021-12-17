@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Paper from '@mui/material/Paper';
 // import TablePagination from '@mui/material/TablePagination';
 import MyCalendar from './MyCalendar';
+import { useUsuario } from "../../context/usuarioContext";
 
 const bloques = [
   {
@@ -51,40 +52,40 @@ const bloques = [
 ];
 
 export default function Schedule({ events }) {
-  const [ eventsList, setEventsList ] = useState([]);
+  const [eventsList, setEventsList] = useState([]);
 
-  console.log("all events", events)
+  const { user } = useUsuario()
 
-  useEffect( () => {
-    const getAllEventDates = function(event) {
+  useEffect(() => {
+    const getAllEventDates = function (event) {
       const allDates = [];
       const startDate = strDateToDateObj(event.fecha_inicio_recurrencia);
       const endDate = strDateToDateObj(event.fecha_fin_recurrencia);
 
       let date = startDate;
-      if(event.tipoRecurrencia === 'Semanal') {
-        while( dateIsBetween(startDate, endDate, date) ) {
-          allDates.push( new Date(date.getTime()) );
-          date.setDate( date.getDate() + 7 )
+      if (event.tipoRecurrencia === 'Semanal') {
+        while (dateIsBetween(startDate, endDate, date)) {
+          allDates.push(new Date(date.getTime()));
+          date.setDate(date.getDate() + 7)
         }
-      } else if(event.tipoRecurrencia === 'Mensual') {
-        while( dateIsBetween(startDate, endDate, date) ) {
-          allDates.push( new Date(date.getTime()) );
-          date.setDate( date.getMonth() + 1 )
+      } else if (event.tipoRecurrencia === 'Mensual') {
+        while (dateIsBetween(startDate, endDate, date)) {
+          allDates.push(new Date(date.getTime()));
+          date.setDate(date.getMonth() + 1)
         }
-      } else if(event.tipoRecurrencia === 'Diaria') {
-        while( dateIsBetween(startDate, endDate, date) ) {
-          allDates.push( new Date(date.getTime()) );
-          date.setDate( date.getDate() + 1 )
+      } else if (event.tipoRecurrencia === 'Diaria') {
+        while (dateIsBetween(startDate, endDate, date)) {
+          allDates.push(new Date(date.getTime()));
+          date.setDate(date.getDate() + 1)
         }
       } else {
-        allDates.push( strDateToDateObj(event.fecha_inicio_recurrencia) )
+        allDates.push(strDateToDateObj(event.fecha_inicio_recurrencia))
       }
       return allDates;
     };
 
     function getEventInstances(event, dates) {
-      return dates.map( d => (
+      return dates.map(d => (
         {
           title: event.nombre,
           allDay: false,
@@ -99,8 +100,8 @@ export default function Schedule({ events }) {
       const year = date.getYear() + 1900;
       const month = date.getMonth();
       const day = date.getDate();
-      const [ startHour, startMinute ] = blockStartTime.split(':');
-      return new Date( year, month, day, startHour, startMinute);
+      const [startHour, startMinute] = blockStartTime.split(':');
+      return new Date(year, month, day, startHour, startMinute);
     };
 
     function getEndDate(event, date) {
@@ -108,28 +109,41 @@ export default function Schedule({ events }) {
       const year = date.getYear() + 1900;
       const month = date.getMonth();
       const day = date.getDate();
-      const [ endHour, endMinute ] = blockEndTime.split(':');
-      return new Date( year, month, day, endHour, endMinute);
+      const [endHour, endMinute] = blockEndTime.split(':');
+      return new Date(year, month, day, endHour, endMinute);
     };
+    console.log(events)
 
     const list = [];
-    // const filteredEvents = events.filter( e => {
-
-    // } )
-
+    let filteredEvents = []
+    if (user.tipo_usuario === "ESTUDIANTE") {
 
 
-    events.forEach( e => {
+      filteredEvents = events.filter(e => e.asistentes.some(a => a === user.refId));
+
+
+    }
+    else if (user.tipo_usuario === "PROFESOR") {
+      filteredEvents = events.filter(e => e.profesor === user.refId);
+
+    } else {
+      filteredEvents = events;
+
+    }
+
+
+
+    filteredEvents.forEach(e => {
       const all = getAllEventDates(e);
       const instances = getEventInstances(e, all);
-      instances.forEach( i => list.push(i) )
-    } );
+      instances.forEach(i => list.push(i))
+    });
     setEventsList(list);
-  }, [events]);
+  }, [events, user.refId]);
 
 
   function dateIsBetween(min, max, date) {
-    return(
+    return (
       date.getTime() <= max.getTime() && date.getTime() >= min.getTime()
     )
   }
@@ -143,16 +157,16 @@ export default function Schedule({ events }) {
   }
 
   function getBlockStartTime(value) {
-    return bloques.find( b => b.value == value ).label.split(' ')[0];
+    return bloques.find(b => b.value == value).label.split(' ')[0];
   }
 
   function getBlockEndTime(value) {
-    return bloques.find( b => b.value == value ).label.split(' ')[2];
+    return bloques.find(b => b.value == value).label.split(' ')[2];
   }
 
   return (
     <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-      <MyCalendar events={eventsList}/>
+      <MyCalendar events={eventsList} />
     </Paper>
   );
 }
