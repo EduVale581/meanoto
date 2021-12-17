@@ -137,6 +137,7 @@ function EnhancedTableHead(props) {
 }
 
 export default function EventSearchTable({ events }) {
+
   const isMounted = useRef(true);
   const [order, setOrder] = useState('asc');
   const [orderBy, setOrderBy] = useState('calories');
@@ -172,10 +173,10 @@ export default function EventSearchTable({ events }) {
     setOrderBy(property);
   };
 
-  const handleClick = (event, row) => {
-    setSelectedId(row.id);
-    setSelectedRow(row);
-  };
+  // const handleClick = (event, row) => {
+  //   setSelectedId(row.id);
+  //   setSelectedRow(row);
+  // };
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -226,6 +227,33 @@ export default function EventSearchTable({ events }) {
     setRows(filtered);
   };
 
+  const isReserved = (row) => {
+    return row.asistentes.some( a => a === user.refId );
+  };
+
+  const handleReservation = (ev) => {
+    if( ! isReserved(ev) ) return reserve(ev);
+    return cancelReservation(ev);
+  }
+
+  const cancelReservation = (ev) => {
+    console.log("antes", ev.asistentes)
+    const filtered = ev.asistentes.filter( a => a !== user.refId);
+    ev.asistentes = filtered;
+    console.log("despues", ev.asistentes)
+    const index = rows.findIndex( r => r.id === ev.id );
+    rows.splice(index, 1, ev);
+    setRows([...rows]);
+  }
+
+  const reserve = (ev) => {
+    ev.asistentes.push(user.refId)
+    const index = rows.findIndex( r => r.id === ev.id );
+    rows.splice(index, 1, ev);
+    setRows([...rows]);
+  }
+
+
   function removeAccents(str) {
     return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   }
@@ -246,7 +274,6 @@ export default function EventSearchTable({ events }) {
           >
 
             <EnhancedTableHead
-              // numSelected={selected.length}
               order={order}
               orderBy={orderBy}
               onRequestSort={handleRequestSort}
@@ -254,20 +281,14 @@ export default function EventSearchTable({ events }) {
             />
 
             <TableBody>
-              {/* if you don't need to support IE11, you can replace the `stableSort` call with:
-                 rows.slice().sort(getComparator(order, orderBy)) */}
               {stableSort(rows, getComparator(order, orderBy))
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map((row, index) => {
-                  const isItemSelected = isSelected(row.name);
                   const labelId = `enhanced-table-checkbox-${index}`;
 
                   return (
                     <TableRow
                       hover
-                      onClick={(event) => handleClick(event, row)}
-                      role="checkbox"
-                      aria-checked={isItemSelected}
                       tabIndex={-1}
                       key={index}
                     >
@@ -303,11 +324,16 @@ export default function EventSearchTable({ events }) {
                       <TableCell align="right">
                         {user.tipo_usuario === 'ESTUDIANTE' ? (
                           <Tooltip title="Reservar">
-                            <IconButton
-                              disabled={row.sala ? false : true}
-                            >
-                              <EventSeatIcon />
-                            </IconButton>
+                            <span>
+                              <IconButton
+                                disabled={row.sala ? false : true}
+                                onClick={ () => handleReservation(row)}
+                              >
+                                <EventSeatIcon
+                                  color={isReserved(row) ? "success" : ""}
+                                />
+                              </IconButton>
+                            </span>
                           </Tooltip>
                         ) : (
                           <div></div>
@@ -372,14 +398,3 @@ export default function EventSearchTable({ events }) {
     </Box>
   );
 }
-
-// function createData(id, nombre, modulo, profesor, sala, fecha) {
-//   return {
-//     id,
-//     nombre,
-//     modulo,
-//     profesor,
-//     sala,
-//     fecha,
-//   };
-// }
