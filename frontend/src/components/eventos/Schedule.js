@@ -53,6 +53,8 @@ const bloques = [
 export default function Schedule({ events }) {
   const [ eventsList, setEventsList ] = useState([]);
 
+  console.log("all events", events)
+
   useEffect( () => {
     const getAllEventDates = function(event) {
       const allDates = [];
@@ -111,6 +113,12 @@ export default function Schedule({ events }) {
     };
 
     const list = [];
+    // const filteredEvents = events.filter( e => {
+
+    // } )
+
+
+
     events.forEach( e => {
       const all = getAllEventDates(e);
       const instances = getEventInstances(e, all);
