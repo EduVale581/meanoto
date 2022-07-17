@@ -35,13 +35,13 @@ app.config["JWT_SECRET_KEY"] = "super-secret"
 app.config["MAIL_SERVER"] = 'smtp.gmail.com'
 app.config["MAIL_PORT"] = 587
 app.config["MAIL_USE_TLS"] = True
-app.config["MAIL_USERNAME"] = 'meanoto2021@gmail.com'
-app.config["MAIL_PASSWORD"] = 'meanoto123'
+app.config["MAIL_USERNAME"] = 'xxxxx@gmail.com'
+app.config["MAIL_PASSWORD"] = 'xxxxx'
 app.json_encoder = MyEncoder
 
 jwt = JWTManager(app)
 mail = Mail(app)
-dbx = dropbox.Dropbox("tqNg1q6lWygAAAAAAAAAARN-TPPDgpDCV18QtmdhiG_61Xk3zZFQwFPvKFjv5FdU")
+dbx = dropbox.Dropbox("xxxxxxxxxxxxxxx")
 CORS(app)
 
 ## characters to generate password from
